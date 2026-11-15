@@ -1,7 +1,0 @@
-# Equal evaluation budget, different swarm size / iteration trade-offs.
-name = "swarm_vs_iterations"
-base = "../default.toml"
-
-[fixed_budget]
-budget = 3000
-swarm_sizes = [10, 20, 30, 60, 100]

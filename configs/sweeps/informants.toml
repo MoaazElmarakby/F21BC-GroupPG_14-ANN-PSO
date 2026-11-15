@@ -1,6 +1,0 @@
-# Informant study (D4): K random informants per particle, plus the global topology ("all").
-name = "informants"
-base = "../default.toml"
-
-[grid]
-"pso.n_informants" = [2, 3, 4, 6, 8]
