@@ -36,7 +36,7 @@ def plot_convergence(
         ax.plot(evaluations[label], mean, label=f"{label} (n={len(curves)})")
         ax.fill_between(evaluations[label], mean - std, mean + std, alpha=0.2)
     ax.set_xlabel("fitness evaluations")
-    ax.set_ylabel(f"{key} fitness")
+    ax.set_ylabel({"diversity": "swarm diversity (mean per-dimension std)", "boundary_hits": "coordinates outside the bounds"}.get(key, f"{key} fitness"))
     ax.legend(fontsize=8)
     ax.grid(alpha=0.3)
     fig.tight_layout()
