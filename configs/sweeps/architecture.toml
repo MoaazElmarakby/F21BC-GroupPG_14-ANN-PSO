@@ -1,0 +1,7 @@
+# Architecture study (D7): depth, width and hidden activation.
+name = "architecture"
+base = "../default.toml"
+
+[grid]
+"ann.hidden_layers" = [[2], [4], [8], [16], [8, 4]]
+"ann.hidden_activation" = ["tanh", "relu", "logistic"]

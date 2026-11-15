@@ -1,0 +1,9 @@
+# Coefficient study (D3): inertia, personal, informant and global pulls.
+name = "coefficients"
+base = "../default.toml"
+
+[grid]
+"pso.alpha" = [0.4, 0.7298, 0.9]
+"pso.beta" = [0.5, 1.4962, 2.0]
+"pso.gamma" = [0.5, 1.4962, 2.0]
+"pso.delta" = [0.0, 0.5]

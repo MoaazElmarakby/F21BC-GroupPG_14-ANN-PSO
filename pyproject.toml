@@ -1,0 +1,26 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "psoann"
+version = "0.1.0"
+description = "From-scratch ANN trained by PSO (Algorithm 39, Luke) on the Banknote Authentication task"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = ["numpy>=1.26"]
+
+[project.optional-dependencies]
+analysis = ["pandas>=2.0", "matplotlib>=3.8"]
+dev = ["pytest>=8", "pandas>=2.0", "matplotlib>=3.8"]
+
+[project.scripts]
+psoann = "psoann.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+pythonpath = ["src"]
+testpaths = ["tests"]
+addopts = "-q"

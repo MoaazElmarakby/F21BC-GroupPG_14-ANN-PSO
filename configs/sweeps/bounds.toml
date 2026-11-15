@@ -1,0 +1,7 @@
+# Weight-bound study (D5) and boundary handling.
+name = "bounds"
+base = "../default.toml"
+
+[grid]
+"pso.bound" = [0.5, 1.0, 2.0, 4.0, 8.0]
+"pso.bound_handling" = ["clamp", "reflect"]

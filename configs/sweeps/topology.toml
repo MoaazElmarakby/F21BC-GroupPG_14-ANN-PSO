@@ -1,0 +1,6 @@
+# Compare informant topologies at equal budget.
+name = "topology"
+base = "../default.toml"
+
+[grid]
+"pso.informants" = ["random", "ring", "global"]
