@@ -6,10 +6,13 @@
         "grid": {"pso.n_informants": [2, 3, 4, 6, 8]},    # full cartesian product of these dotted keys
         "fixed_budget": {"budget": 3000,                  # optional: swarm_size x iterations pairs
                          "swarm_sizes": [10, 20, 30]},    # with equal evaluations
+        "points": [{"label": "global", "pso.informants": "global"},   # optional: explicit settings, each a
+                   {"label": "k3", "pso.n_informants": 3}],           # dict of dotted overrides (+ a label)
     }
 
-The grid and the fixed-budget pairs are crossed. Every point becomes an ordinary experiment, so each
-result row still carries its full configuration.
+The grid, the fixed-budget pairs and the explicit points are crossed. Use ``points`` where the factors
+are not a full grid (e.g. the "global" topology has no number of informants). Every point becomes an
+ordinary experiment, so each result row still carries its full configuration.
 """
 
 from __future__ import annotations
@@ -21,7 +24,7 @@ from typing import Any, Callable, Mapping
 from psoann.config import ExperimentConfig
 from psoann.experiments.runner import History, Row, run_experiment
 
-_ALLOWED_KEYS = {"name", "overrides", "grid", "fixed_budget"}
+_ALLOWED_KEYS = {"name", "overrides", "grid", "fixed_budget", "points"}
 
 
 @dataclass(frozen=True)
@@ -38,6 +41,7 @@ class Sweep:
     grid: dict[str, list[Any]] = field(default_factory=dict)
     swarm_sizes: tuple[int, ...] = ()
     budget: int | None = None
+    points: tuple[dict[str, Any], ...] = ()  # explicit settings; optional "label" names the point
 
     @classmethod
     def from_dict(cls, data: Mapping[str, Any]) -> "Sweep":
@@ -60,30 +64,57 @@ class Sweep:
             raise ValueError("fixed_budget needs both 'budget' and a non-empty 'swarm_sizes'")
         if fixed and any(key in grid for key in ("pso.swarm_size", "pso.iterations")):
             raise ValueError("fixed_budget already sets pso.swarm_size and pso.iterations; remove them from [grid]")
+        points = [dict(point) for point in data.get("points", [])]
+        if "points" in data and not points:
+            raise ValueError("'points' needs at least one point")
+        for point in points:
+            overrides = {k: v for k, v in point.items() if k != "label"}
+            if not overrides:
+                raise ValueError("every point needs at least one override")
+            if any(key in grid for key in overrides):
+                raise ValueError(f"point keys {sorted(set(overrides) & set(grid))} are also in the grid")
+        labels = [p["label"] for p in points if "label" in p]
+        if len(set(labels)) != len(labels):
+            raise ValueError("point labels must be unique")
         return cls(
             name=str(data["name"]),
             base=base,
             grid=grid,
             swarm_sizes=tuple(int(n) for n in fixed.get("swarm_sizes", ())),
             budget=int(fixed["budget"]) if fixed else None,
+            points=tuple(points),
         )
 
     def expand(self) -> list[SweepPoint]:
-        axes: list[list[tuple[str, Any]]] = [[(key, v) for v in values] for key, values in self.grid.items()]
+        # Each axis is a list of (params, overrides, label) options; params name the point, overrides configure it.
+        axes: list[list[tuple[dict[str, Any], dict[str, Any], str | None]]] = [
+            [({key: v}, {key: v}, None) for v in values] for key, values in self.grid.items()
+        ]
         if self.budget is not None:
-            pairs = []
+            options = []
             for swarm in self.swarm_sizes:
                 if swarm > self.budget:
                     raise ValueError(f"swarm size {swarm} exceeds the budget {self.budget}")
-                pairs.append(("pso.swarm_size", swarm))
-            axes.append(pairs)
+                options.append(({"pso.swarm_size": swarm}, {"pso.swarm_size": swarm, "pso.iterations": self.budget // swarm}, None))
+            axes.append(options)
+        if self.points:
+            axes.append(
+                [
+                    (overrides, overrides, point.get("label"))
+                    for point in self.points
+                    for overrides in [{k: v for k, v in point.items() if k != "label"}]
+                ]
+            )
         points: list[SweepPoint] = []
         for combo in itertools.product(*axes) if axes else [()]:
-            params = dict(combo)
-            overrides = dict(params)
-            if self.budget is not None:
-                overrides["pso.iterations"] = self.budget // params["pso.swarm_size"]
-            point_id = "__".join(f"{k.split('.')[-1]}={_label(v)}" for k, v in params.items()) or "base"
+            params: dict[str, Any] = {}
+            overrides: dict[str, Any] = {}
+            labels: list[str] = []
+            for option_params, option_overrides, label in combo:
+                params.update(option_params)
+                overrides.update(option_overrides)
+                labels.append(label if label is not None else "__".join(f"{k.split('.')[-1]}={_label(v)}" for k, v in option_params.items()))
+            point_id = "__".join(labels) or "base"
             config = self.base.with_overrides({**overrides, "name": f"{self.name}/{point_id}"})
             points.append(SweepPoint(point_id, params, config))
         return points
@@ -91,7 +122,7 @@ class Sweep:
 
 def _label(value: Any) -> str:
     if isinstance(value, (list, tuple)):
-        return "-".join(str(v) for v in value)
+        return "-".join(str(v) for v in value) or "none"
     return str(value)
 
 

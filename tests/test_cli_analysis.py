@@ -35,14 +35,16 @@ def test_bad_overrides_exit_with_an_error(tmp_path, capsys):
 
 
 def test_sweep_command(tmp_path):
-    assert main(["sweep", "topology", "--runs", "2", *FAST, "--out", str(tmp_path)]) == 0
-    df = pd.read_csv(tmp_path / "sweep_topology.csv")
-    assert len(df) == 6 and set(df["cfg.pso.informants"]) == {"random", "ring", "global"}
+    assert main(["sweep", "bounds", "--runs", "2", *FAST, "--out", str(tmp_path)]) == 0
+    df = pd.read_csv(tmp_path / "sweep_bounds.csv")
+    assert len(df) == 10 and set(df["cfg.pso.bound_handling"]) == {"clamp", "reflect", "wrap", "random", "none"}
 
 
 def test_summarise_command_and_function(results_dir, capsys):
     assert main(["summarise", str(results_dir / "default.csv"), "--by", "cfg.pso.n_informants"]) == 0
     assert "test_accuracy_mean" in capsys.readouterr().out
+    assert main(["summarise", str(results_dir / "default.csv"), "--metric", "test_f1"]) == 0
+    assert "test_f1_mean" in capsys.readouterr().out
     table = summarise(load_results(results_dir / "default.csv"))
     assert table.loc[0, "n_runs"] == 3 and {"test_accuracy_mean", "test_accuracy_std"} <= set(table.columns)
     with pytest.raises(KeyError, match="not in results"):

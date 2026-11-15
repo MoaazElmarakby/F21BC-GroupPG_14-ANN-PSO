@@ -58,6 +58,32 @@ def accuracy(outputs: NDArray[np.float64], labels: NDArray[np.int64]) -> float:
     return float(np.mean(predict_labels(outputs) == np.asarray(labels)))
 
 
+def confusion_counts(outputs: NDArray[np.float64], labels: NDArray[np.int64], positive: int = 1) -> tuple[int, int, int, int]:
+    """(tp, fp, fn, tn) treating class ``positive`` as the positive class (1 = forged banknote)."""
+    predicted = predict_labels(outputs) == positive
+    actual = np.asarray(labels) == positive
+    tp = int(np.sum(predicted & actual))
+    fp = int(np.sum(predicted & ~actual))
+    fn = int(np.sum(~predicted & actual))
+    tn = int(np.sum(~predicted & ~actual))
+    return tp, fp, fn, tn
+
+
+def precision_recall_f1(
+    outputs: NDArray[np.float64], labels: NDArray[np.int64], positive: int = 1
+) -> tuple[float, float, float]:
+    """Precision, recall and F1 of the positive class; a 0/0 ratio is reported as 0.0."""
+    tp, fp, fn, _ = confusion_counts(outputs, labels, positive)
+    precision = tp / (tp + fp) if tp + fp else 0.0
+    recall = tp / (tp + fn) if tp + fn else 0.0
+    f1 = 2.0 * precision * recall / (precision + recall) if precision + recall else 0.0
+    return float(precision), float(recall), float(f1)
+
+
+def f1_score(outputs: NDArray[np.float64], labels: NDArray[np.int64]) -> float:
+    return precision_recall_f1(outputs, labels)[2]
+
+
 def mse(outputs: NDArray[np.float64], labels: NDArray[np.int64]) -> float:
     """Mean squared error (lower is better; used for reporting and, negated, as a fitness)."""
     return float(np.mean((_as_matrix(outputs) - _targets(outputs, labels)) ** 2))
@@ -75,5 +101,6 @@ def neg_cross_entropy(outputs: NDArray[np.float64], labels: NDArray[np.int64]) -
 
 
 register_fitness_metric("accuracy", accuracy)
+register_fitness_metric("f1", f1_score)
 register_fitness_metric("neg_mse", neg_mse)
 register_fitness_metric("neg_cross_entropy", neg_cross_entropy)

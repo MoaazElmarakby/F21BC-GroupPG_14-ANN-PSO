@@ -16,6 +16,7 @@ from typing import Any, Mapping
 
 _SPLIT_POLICIES = ("fixed", "per_run")
 _INITIAL_VELOCITIES = ("half_diff", "zero")
+_OPTIMIZERS = ("pso", "random_search")
 
 
 def _require(condition: bool, message: str) -> None:
@@ -74,6 +75,10 @@ class ANNConfig:
     hidden_activation: str = "tanh"
     output_activation: str = "logistic"
     n_outputs: int = 1  # 1 = one logistic unit (predict 1 if >= 0.5); >1 = argmax
+    # Extension: one extra gene per hidden layer selects that layer's activation from ``activation_choices``
+    # (``hidden_activation`` is then ignored). The output layer keeps ``output_activation``.
+    evolve_activations: bool = False
+    activation_choices: tuple[str, ...] = ("logistic", "tanh", "relu")
 
     def __post_init__(self) -> None:
         layers = self.hidden_layers
@@ -84,6 +89,12 @@ class ANNConfig:
         _require(isinstance(self.hidden_activation, str) and self.hidden_activation, "ann.hidden_activation must be a name")
         _require(isinstance(self.output_activation, str) and self.output_activation, "ann.output_activation must be a name")
         _require(_is_int(self.n_outputs) and self.n_outputs >= 1, "ann.n_outputs must be an int >= 1")
+        _require(isinstance(self.evolve_activations, bool), "ann.evolve_activations must be a bool")
+        choices = self.activation_choices
+        _require(isinstance(choices, (list, tuple)) and len(choices) >= 1, "ann.activation_choices must be a non-empty list of names")
+        _require(all(isinstance(c, str) and c for c in choices), "ann.activation_choices must contain activation names")
+        object.__setattr__(self, "activation_choices", tuple(choices))
+        _require(not (self.evolve_activations and not layers), "ann.evolve_activations needs at least one hidden layer")
 
     @classmethod
     def from_dict(cls, data: Mapping[str, Any]) -> "ANNConfig":
@@ -136,9 +147,11 @@ class PSOConfig:
 @dataclass(frozen=True)
 class TrainingConfig:
     fitness: str = "accuracy"  # D2: training accuracy by default
+    optimizer: str = "pso"  # "random_search" is the equal-budget control (study Q0)
 
     def __post_init__(self) -> None:
         _require(isinstance(self.fitness, str) and self.fitness, "training.fitness must be a metric name")
+        _require(self.optimizer in _OPTIMIZERS, f"training.optimizer must be one of {_OPTIMIZERS}")
 
     @classmethod
     def from_dict(cls, data: Mapping[str, Any]) -> "TrainingConfig":
@@ -201,7 +214,7 @@ class ExperimentConfig:
         return hashlib.sha1(self.to_json().encode("utf-8")).hexdigest()[:10]
 
     def flatten(self) -> dict[str, Any]:
-        """Dotted keys with scalar values (lists become ``"8-4"``), ready to be CSV columns."""
+        """Dotted keys with scalar values (lists become ``"8-4"``, an empty list ``"none"``), ready to be CSV columns."""
         out: dict[str, Any] = {}
 
         def walk(prefix: str, node: Mapping[str, Any]) -> None:
@@ -210,7 +223,7 @@ class ExperimentConfig:
                 if isinstance(value, Mapping):
                     walk(full + ".", value)
                 elif isinstance(value, (list, tuple)):
-                    out[full] = "-".join(str(v) for v in value)
+                    out[full] = "-".join(str(v) for v in value) or "none"
                 else:
                     out[full] = value
 

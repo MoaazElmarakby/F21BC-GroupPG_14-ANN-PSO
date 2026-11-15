@@ -13,6 +13,7 @@ from psoann.pso.informants import (
     register_informant_strategy,
 )
 from psoann.pso.optimizer import ParticleSwarmOptimizer
+from psoann.pso.random_search import RandomSearchOptimizer
 from psoann.pso.types import Fitness, PSOResult, SearchSpace
 
 __all__ = [
@@ -21,6 +22,7 @@ __all__ = [
     "InformantStrategy",
     "PSOResult",
     "ParticleSwarmOptimizer",
+    "RandomSearchOptimizer",
     "SearchSpace",
     "available_boundary_handlers",
     "available_informant_strategies",

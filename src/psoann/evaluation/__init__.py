@@ -3,8 +3,11 @@
 from psoann.evaluation.metrics import (
     accuracy,
     available_fitness_metrics,
+    confusion_counts,
+    f1_score,
     get_fitness_metric,
     mse,
+    precision_recall_f1,
     predict_labels,
     register_fitness_metric,
 )
@@ -12,8 +15,11 @@ from psoann.evaluation.metrics import (
 __all__ = [
     "accuracy",
     "available_fitness_metrics",
+    "confusion_counts",
+    "f1_score",
     "get_fitness_metric",
     "mse",
+    "precision_recall_f1",
     "predict_labels",
     "register_fitness_metric",
 ]

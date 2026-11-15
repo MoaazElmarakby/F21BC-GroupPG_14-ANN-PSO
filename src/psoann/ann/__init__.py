@@ -2,9 +2,10 @@
 
 from psoann.ann.activations import available_activations, get_activation, register_activation
 from psoann.ann.codec import LayerParams, ParameterCodec
-from psoann.ann.network import FeedForwardNetwork, build_network
+from psoann.ann.network import EvolvedActivationNetwork, FeedForwardNetwork, build_network
 
 __all__ = [
+    "EvolvedActivationNetwork",
     "FeedForwardNetwork",
     "LayerParams",
     "ParameterCodec",

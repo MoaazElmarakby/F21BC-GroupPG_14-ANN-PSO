@@ -76,6 +76,7 @@ def run_single(
 
     train_metrics = evaluate_parameters(trained.network, trained.parameters, split.X_train, split.y_train)
     test_metrics = evaluate_parameters(trained.network, trained.parameters, split.X_test, split.y_test)
+    evals_to_target = _evals_to_target(trained.pso, config.target_fitness)
     row: Row = {
         "experiment": config.name,
         "config_hash": config.config_hash(),
@@ -84,12 +85,20 @@ def run_single(
         "n_parameters": trained.network.n_parameters,
         "evaluations": trained.pso.evaluations,
         "best_fitness": trained.fitness,
+        "hidden_activations": trained.network.describe_activations(trained.parameters),
         "train_accuracy": train_metrics["accuracy"],
         "test_accuracy": test_metrics["accuracy"],
+        "train_precision": train_metrics["precision"],
+        "test_precision": test_metrics["precision"],
+        "train_recall": train_metrics["recall"],
+        "test_recall": test_metrics["recall"],
+        "train_f1": train_metrics["f1"],
+        "test_f1": test_metrics["f1"],
         "train_mse": train_metrics["mse"],
         "test_mse": test_metrics["mse"],
         "evals_to_final_best": trained.pso.evaluations_to_final_best(),
-        "evals_to_target": _evals_to_target(trained.pso, config.target_fitness),
+        "evals_to_target": evals_to_target,
+        "reached_target": None if evals_to_target is None and config.target_fitness is None else int(evals_to_target is not None),
         "runtime_sec": runtime,
     }
     row.update({f"cfg.{key}": value for key, value in config.flatten().items()})

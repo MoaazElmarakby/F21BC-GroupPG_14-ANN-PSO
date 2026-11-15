@@ -14,8 +14,9 @@ Assumptions the pseudo-code leaves open (fixed here and documented in docs/desig
   so changing a coefficient never changes the random stream: sweeps compare like with like.
 
 Deliberate departures from the pseudo-code, selectable in ``PSOConfig``: boundary handling
-(``bound_handling``), optional velocity clamping (``max_velocity_fraction``) and optional per-iteration
-informant redrawing (``regenerate_informants``).
+(``bound_handling``: clamp, reflect, wrap, random, none), optional velocity clamping
+(``max_velocity_fraction``), optional per-iteration informant redrawing (``regenerate_informants``) and
+position-based informants (``informants = "nearest"``, recomputed every iteration).
 """
 
 from __future__ import annotations
@@ -49,7 +50,7 @@ class ParticleSwarmOptimizer:
 
         # [Alg. 39, lines 7-9] P <- swarmsize random particles, each with a random velocity
         positions, velocities = self._initialise_swarm(space, rng)
-        informants = self.informants.build(swarm, rng)
+        informants = self._build_informants(positions, swarm, rng)
 
         pbest_position = positions.copy()  # x*: each particle's previous fittest location
         pbest_fitness = np.full(swarm, -np.inf)
@@ -57,9 +58,10 @@ class ParticleSwarmOptimizer:
         gbest_fitness = -np.inf  # [Alg. 39, line 10] Best <- (nothing yet)
         max_velocity = None if cfg.max_velocity_fraction is None else cfg.max_velocity_fraction * space.span
 
-        keys = ("evaluations", "best", "mean", "iteration_best", "diversity")
+        keys = ("evaluations", "best", "mean", "iteration_best", "diversity", "boundary_hits")
         history: dict[str, list[float]] = {k: [] for k in keys}
         evaluations = 0
+        boundary_hits = 0  # coordinates that left the search space in the move that led to this iteration
 
         for iteration in range(cfg.iterations):  # [Alg. 39, line 11] repeat ... until out of time
             # [Alg. 39, lines 12-13] assess the fitness of every particle
@@ -82,12 +84,13 @@ class ParticleSwarmOptimizer:
             history["mean"].append(float(np.mean(scores)))
             history["iteration_best"].append(float(scores[leader]))
             history["diversity"].append(float(np.mean(np.std(positions, axis=0))))
+            history["boundary_hits"].append(float(boundary_hits))
 
             if iteration == cfg.iterations - 1:
                 break  # budget spent: [Alg. 39, line 27] the loop ends before another move
 
-            if cfg.regenerate_informants:
-                informants = self.informants.regenerate(informants, swarm, rng)
+            if cfg.regenerate_informants or self.informants.uses_positions:
+                informants = self._regenerate_informants(informants, positions, swarm, rng)
 
             # [Alg. 39, lines 16-19] for each particle: x*, x+ (best among informants), x!
             informant_best = self._informant_best(informants, pbest_position, pbest_fitness)
@@ -102,7 +105,9 @@ class ParticleSwarmOptimizer:
 
             # [Alg. 39, lines 25-26] x <- x + epsilon * v   (then boundary handling)
             positions = self._move(positions, velocities)
-            self.boundary.apply(positions, velocities, space)
+            noise = rng.random((swarm, dim))  # always drawn, so the stream is the same for every handler
+            boundary_hits = int(np.sum((positions < space.lower) | (positions > space.upper)))
+            self.boundary.apply(positions, velocities, space, noise)
 
         # [Alg. 39, line 28] return Best
         return PSOResult(
@@ -113,6 +118,18 @@ class ParticleSwarmOptimizer:
         )
 
     # ------------------------------------------------------------------------------------------
+    def _build_informants(self, positions: Matrix, swarm: int, rng: np.random.Generator) -> NDArray[np.int64]:
+        if self.informants.uses_positions:
+            return self.informants.build(swarm, rng, positions)  # type: ignore[call-arg]
+        return self.informants.build(swarm, rng)
+
+    def _regenerate_informants(
+        self, informants: NDArray[np.int64], positions: Matrix, swarm: int, rng: np.random.Generator
+    ) -> NDArray[np.int64]:
+        if self.informants.uses_positions:
+            return self.informants.regenerate(informants, swarm, rng, positions)  # type: ignore[call-arg]
+        return self.informants.regenerate(informants, swarm, rng)
+
     def _initialise_swarm(self, space: SearchSpace, rng: np.random.Generator) -> tuple[Matrix, Matrix]:
         """Random positions; velocity = half the vector between two random points (Luke's default)."""
         swarm, dim = self.config.swarm_size, space.dim

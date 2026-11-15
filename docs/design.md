@@ -89,11 +89,23 @@ enforced by `tests/test_architecture.py`, which reads the import statements. (`t
 Informant matrices have shape `(swarm_size, m)`; every row contains the particle itself in column 0, so
 ties in fitness are resolved in favour of the particle itself.
 
-Planned hooks (not implemented in the base, deliberately):
+Implemented since the base (all selected by config, none changes the default behaviour):
 
-* **Activation functions inside the particle** (extra marks in the brief): extend `ParameterCodec`
-  with extra "genes" decoded to an activation index; `FeedForwardNetwork` already takes its
-  activations per layer, so only the codec and fitness wrapper change.
+* **Activation functions inside the particle** (`ann.evolve_activations`): `EvolvedActivationNetwork`
+  appends one gene per hidden layer to the weight vector; the integer part of gene g in `[0, K)` selects
+  that layer's activation from `ann.activation_choices`. Weights keep `+-pso.bound`; genes use
+  `[0, K)`. The vector length is fixed and the architecture is fixed, as the brief requires. A network
+  provides its own per-dimension bounds (`network.bounds(b)`), so `ann/` never imports `pso/`.
+* **Position-based informants** (`pso.informants = "nearest"`): the `k` nearest particles in search
+  space, recomputed every iteration (`InformantStrategy.uses_positions`).
+* **Boundary rules** `wrap` and `random` besides `clamp`, `reflect`, `none`. `random` needs random numbers,
+  so the optimiser always draws one noise matrix per move and passes it to every handler: the random
+  stream is identical whichever handler is used.
+* **Random-search control** (`training.optimizer = "random_search"`): same budget, same history keys.
+* **Studies as data**: `experiments/presets.py` defines Q0 to Q7; sweeps accept explicit `points`.
+
+Still planned (deliberately not implemented):
+
 * **Adaptive/time-varying coefficients**: `ParticleSwarmOptimizer` reads α, β, γ, δ once; introduce a
   small `CoefficientSchedule` protocol and call it at the top of each iteration.
 * **Cross-validation**: `data.split.stratified_kfold` exists (and is tested); add a runner mode that
@@ -116,6 +128,7 @@ number turned out to be right). The code comments use the form `[Alg. 39, line N
 | 17 | `x*`: particle's previous fittest location | `pbest_position` |
 | 18 | `x+`: fittest location among informants (incl. itself) | `_informant_best` |
 | 19 | `x!`: fittest location of any particle | `gbest_position` |
+| 16 | loop over particles to compute their targets | `_informant_best` (vectorised over all particles) |
 | 20–24 | per-dimension velocity update (b, c, d are lines 21–23) | `_update_velocity` |
 | 25–26 | position update `x ← x + ε·v` | `_move` |
 | 28 | return `Best` | `PSOResult` |
@@ -126,7 +139,8 @@ but does not move.
 
 Deliberate departures from the pseudo-code (all optional and off by default unless stated):
 boundary handling (`bound_handling`, default `clamp`), optional velocity clamping
-(`max_velocity_fraction`), and informant resampling (`regenerate_informants`). Initial velocity follows
+(`max_velocity_fraction`), informant resampling (`regenerate_informants`) and position-based informants
+(`nearest`). Initial velocity follows
 the book's default (half the vector between two random points); `initial_velocity = "zero"` is the
 alternative the book mentions.
 
@@ -146,6 +160,11 @@ alternative the book mentions.
 | D10 | `clamp` zeroes the velocity component of any clamped dimension (absorbing wall); `reflect` reverses it | Standard behaviour; keeps clamped particles from pressing on the wall | Bound study shows otherwise |
 | D11 | Defaults not fixed by earlier decisions: swarm 30, 100 iterations (3000 evaluations), 70/30 stratified split | Small, fast, reproduces the saturation noted in section 7; **assumptions, not requirements** | The brief prescribes sizes or a split |
 | D12 | Sweeps are plain Python dicts in `experiments/presets.py`: `grid` (cartesian product of dotted keys) and `fixed_budget` (swarm sizes at equal evaluations, iterations = budget // swarm) | Studies are declarative data (no config files), every point is an ordinary experiment | — |
+| D14 | Evolved activations: one gene per hidden layer in `[0, K)`, decoded by floor and clipped; output layer stays logistic | Keeps the particle fixed-length (the brief) while letting PSO choose the non-linearity | The activation study shows no effect |
+| D15 | Studies use 20 particles x 100 iterations = 2000 evaluations, 30 runs, fixed split, same seeds across settings; Q2 also uses 500 | Evaluation budget is the unit in the brief; paired seeds reduce noise; budgets of 500 and 2000 avoid a ceiling effect | The pilot contradicts |
+| D16 | Random-search control uses `swarm_size` samples per "iteration" | Identical evaluation count and history shape as PSO | — |
+| D17 | Statistics are non-parametric (Kruskal-Wallis, Mann-Whitney with Holm, A12) | Accuracy saturates near 1.0 and has ties; no normality assumption | — |
+| D18 | Models are selected on training fitness only (pilots); the test set is for reporting | Selecting on the test set is a validity flaw | — |
 | D13 | `ring` topology uses `max(1, n_informants // 2)` neighbours each side; `global` (alias `all`) uses everyone | Gives the informant study its two extremes without new config keys | — |
 
 ## 7. Open questions for the team
@@ -153,10 +172,11 @@ alternative the book mentions.
 * Output encoding for the report: one logistic unit (current) vs two outputs with argmax (both work:
   `ann.n_outputs = 2`).
 * Fixed vs per-run split for the headline numbers (the std means different things).
-* Which single extension to commit to for "Going further" (bounds, TVAC, activation genes, …).
+* Which extensions to feature in the report (implemented: activation genes, boundary rules, informant
+  strategies, fitness comparison, statistics); the brief rewards depth over count, so pick three.
 * Confirm D11 against the brief (swarm size, iterations, train/test proportions, number of runs, what
   must be reported).
-* Fill in the bibliographic details marked `TODO(verify)` in LITERATURE.md.
+* Read the sources in LITERATURE.md and fill in or correct every bibliographic detail marked `TODO(verify)`.
 * **Saturation.** In smoke tests (3–10 runs, default settings) the banknote task is solved almost
   perfectly (test accuracy ≈ 0.99–1.00), so final accuracy may barely separate settings. Consider
   also reporting convergence speed (`evals_to_final_best`, or `evals_to_target` with `target_fitness`

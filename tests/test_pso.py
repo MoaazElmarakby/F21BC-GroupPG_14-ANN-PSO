@@ -80,7 +80,7 @@ def test_best_so_far_never_decreases_and_history_is_complete():
     best = result.history["best"]
     assert np.all(np.diff(best) >= 0)
     assert best[-1] == result.best_fitness
-    assert set(result.history) == {"evaluations", "best", "mean", "iteration_best", "diversity"}
+    assert set(result.history) == {"evaluations", "best", "mean", "iteration_best", "diversity", "boundary_hits"}
     assert all(len(v) == 40 for v in result.history.values())
     np.testing.assert_array_equal(result.history["evaluations"], np.arange(1, 41) * 10)
     assert np.all(result.history["iteration_best"] <= result.history["best"])

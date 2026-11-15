@@ -46,7 +46,8 @@ class PSOResult:
     best_fitness: float
     evaluations: int
     # One entry per iteration: "evaluations" (cumulative), "best" (best so far), "mean" and
-    # "iteration_best" (this iteration's swarm), "diversity" (mean per-dimension std of positions).
+    # "iteration_best" (this iteration's swarm), "diversity" (mean per-dimension std of positions) and
+    # "boundary_hits" (coordinates that left the search space in the move before this iteration).
     history: dict[str, NDArray[np.float64]] = field(default_factory=dict)
 
     def evaluations_to_reach(self, target: float) -> int | None:

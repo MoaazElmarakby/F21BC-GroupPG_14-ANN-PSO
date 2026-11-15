@@ -65,6 +65,46 @@ def plot_sweep(results: pd.DataFrame, x: str, y: str, out_path: str | Path, hue:
     return _save(fig, out_path)
 
 
+def plot_boxplot(results: pd.DataFrame, by: str, metric: str, out_path: str | Path, order: Sequence[str] | None = None) -> Path:
+    """One box per group (e.g. ``by="point"``) showing the spread of ``metric`` over the repeated runs."""
+    for column in (by, metric):
+        if column not in results.columns:
+            raise KeyError(f"column {column!r} not in results; available: {list(results.columns)}")
+    clean = results.dropna(subset=[metric])
+    labels = list(order) if order else [str(k) for k in clean[by].drop_duplicates()]
+    data = [clean.loc[clean[by].astype(str) == label, metric].to_numpy() for label in labels]
+    fig, ax = plt.subplots(figsize=(max(6.0, 0.55 * len(labels) + 2.0), 4.5))
+    ax.boxplot(data, showmeans=True)
+    ax.set_xticks(range(1, len(labels) + 1), labels)
+    ax.set_xlabel(by)
+    ax.set_ylabel(metric)
+    ax.tick_params(axis="x", labelrotation=60)
+    ax.grid(alpha=0.3, axis="y")
+    fig.tight_layout()
+    return _save(fig, out_path)
+
+
+def plot_heatmap(results: pd.DataFrame, x: str, y: str, value: str, out_path: str | Path) -> Path:
+    """Mean of ``value`` over a two-factor grid (rows ``y``, columns ``x``), annotated in each cell."""
+    for column in (x, y, value):
+        if column not in results.columns:
+            raise KeyError(f"column {column!r} not in results; available: {list(results.columns)}")
+    table = results.pivot_table(index=y, columns=x, values=value, aggfunc="mean")
+    fig, ax = plt.subplots(figsize=(max(5.0, 0.9 * table.shape[1] + 2.5), max(4.0, 0.6 * table.shape[0] + 1.5)))
+    image = ax.imshow(table.to_numpy(), aspect="auto", origin="lower", cmap="viridis")
+    ax.set_xticks(range(table.shape[1]), [str(c) for c in table.columns])
+    ax.set_yticks(range(table.shape[0]), [str(i) for i in table.index])
+    for i in range(table.shape[0]):
+        for j in range(table.shape[1]):
+            if not np.isnan(table.iat[i, j]):
+                ax.text(j, i, f"{table.iat[i, j]:.3f}", ha="center", va="center", color="white", fontsize=8)
+    ax.set_xlabel(x)
+    ax.set_ylabel(y)
+    fig.colorbar(image, ax=ax, label=f"mean {value}")
+    fig.tight_layout()
+    return _save(fig, out_path)
+
+
 def _save(fig: plt.Figure, out_path: str | Path) -> Path:
     out_path = Path(out_path)
     out_path.parent.mkdir(parents=True, exist_ok=True)
