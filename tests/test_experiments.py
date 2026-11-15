@@ -6,7 +6,9 @@ import pytest
 from psoann.config import ExperimentConfig
 from psoann.data import load_csv
 from psoann.experiments import (
+    SWEEPS,
     Sweep,
+    get_sweep,
     read_csv,
     read_jsonl,
     run_experiment,
@@ -18,7 +20,6 @@ from psoann.experiments import (
 from psoann.experiments.runner import split_for_run
 from psoann.pso import PSOResult
 from psoann.training import PSOTrainer
-from tests.conftest import REPO
 
 METRIC_COLUMNS = ["best_fitness", "train_accuracy", "test_accuracy", "train_mse", "test_mse", "evaluations"]
 
@@ -178,9 +179,9 @@ def test_bad_sweep_definitions_are_rejected(bad):
         Sweep.from_dict(bad).expand()
 
 
-@pytest.mark.parametrize("path", sorted((REPO / "configs" / "sweeps").glob("*.toml")), ids=lambda p: p.stem)
-def test_every_shipped_sweep_parses_and_expands_to_valid_configs(path):
-    points = Sweep.from_toml(path).expand()
+@pytest.mark.parametrize("name", sorted(SWEEPS))
+def test_every_shipped_sweep_expands_to_valid_configs(name):
+    points = get_sweep(name).expand()
     assert points and len({p.point_id for p in points}) == len(points)
 
 

@@ -8,7 +8,7 @@ T = TypeVar("T")
 
 
 class Registry(Generic[T]):
-    """Maps a string name (as used in config files) to an implementation."""
+    """Maps a string name (as used in configs and overrides) to an implementation."""
 
     def __init__(self, kind: str) -> None:
         self.kind = kind

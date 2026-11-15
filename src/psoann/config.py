@@ -1,6 +1,6 @@
 """Experiment configuration: frozen, validated dataclasses (leaf module: imports nothing from psoann).
 
-* Unknown keys are rejected so a typo in a TOML file fails loudly instead of silently using a default.
+* Unknown keys are rejected so a typo in a config fails loudly instead of silently using a default.
 * Numeric ranges are validated here. *Names* (activation, informant topology, ...) are validated when
   the component is built, because the registries live in the packages that depend on this module.
 * ``ExperimentConfig.flatten()`` gives the dotted, CSV-friendly view; ``to_json()`` the exact one.
@@ -11,9 +11,7 @@ from __future__ import annotations
 import dataclasses
 import hashlib
 import json
-import tomllib
 from dataclasses import dataclass, field, fields
-from pathlib import Path
 from typing import Any, Mapping
 
 _SPLIT_POLICIES = ("fixed", "per_run")
@@ -174,11 +172,6 @@ class ExperimentConfig:
     @classmethod
     def from_dict(cls, data: Mapping[str, Any]) -> "ExperimentConfig":
         return _build(cls, data, nested=_SECTIONS)
-
-    @classmethod
-    def from_toml(cls, path: str | Path) -> "ExperimentConfig":
-        with open(path, "rb") as fh:
-            return cls.from_dict(tomllib.load(fh))
 
     @classmethod
     def from_json(cls, text: str) -> "ExperimentConfig":

@@ -1,17 +1,12 @@
-"""Parameter sweeps described by a TOML file.
+"""Parameter sweeps described by a plain dict (see ``presets.py`` for the shipped ones).
 
-    name = "informants"
-    base = "../default.toml"          # optional, relative to this file; omitted -> built-in defaults
-
-    [overrides]                       # optional dotted-key overrides applied to the base config
-    n_runs = 10
-
-    [grid]                            # full cartesian product of these dotted keys
-    "pso.n_informants" = [2, 3, 4, 6, 8]
-
-    [fixed_budget]                    # optional: swarm_size x iterations pairs with equal evaluations
-    budget = 3000
-    swarm_sizes = [10, 20, 30, 60, 100]
+    {
+        "name": "informants",
+        "overrides": {"n_runs": 10},                      # optional dotted-key overrides of the defaults
+        "grid": {"pso.n_informants": [2, 3, 4, 6, 8]},    # full cartesian product of these dotted keys
+        "fixed_budget": {"budget": 3000,                  # optional: swarm_size x iterations pairs
+                         "swarm_sizes": [10, 20, 30]},    # with equal evaluations
+    }
 
 The grid and the fixed-budget pairs are crossed. Every point becomes an ordinary experiment, so each
 result row still carries its full configuration.
@@ -20,15 +15,13 @@ result row still carries its full configuration.
 from __future__ import annotations
 
 import itertools
-import tomllib
 from dataclasses import dataclass, field
-from pathlib import Path
 from typing import Any, Callable, Mapping
 
 from psoann.config import ExperimentConfig
 from psoann.experiments.runner import History, Row, run_experiment
 
-_ALLOWED_KEYS = {"name", "base", "overrides", "grid", "fixed_budget"}
+_ALLOWED_KEYS = {"name", "overrides", "grid", "fixed_budget"}
 
 
 @dataclass(frozen=True)
@@ -47,20 +40,13 @@ class Sweep:
     budget: int | None = None
 
     @classmethod
-    def from_dict(cls, data: Mapping[str, Any], base_dir: Path | None = None) -> "Sweep":
+    def from_dict(cls, data: Mapping[str, Any]) -> "Sweep":
         unknown = sorted(set(data) - _ALLOWED_KEYS)
         if unknown:
             raise ValueError(f"unknown sweep key(s) {unknown}; allowed: {sorted(_ALLOWED_KEYS)}")
         if "name" not in data:
             raise ValueError("a sweep needs a 'name'")
-        if "base" in data:
-            base_path = Path(data["base"])
-            if not base_path.is_absolute() and base_dir is not None:
-                base_path = base_dir / base_path
-            base = ExperimentConfig.from_toml(base_path)
-        else:
-            base = ExperimentConfig()
-        base = base.with_overrides(dict(data.get("overrides", {})))
+        base = ExperimentConfig().with_overrides(dict(data.get("overrides", {})))
 
         grid = {key: list(values) for key, values in data.get("grid", {}).items()}
         for key, values in grid.items():
@@ -81,12 +67,6 @@ class Sweep:
             swarm_sizes=tuple(int(n) for n in fixed.get("swarm_sizes", ())),
             budget=int(fixed["budget"]) if fixed else None,
         )
-
-    @classmethod
-    def from_toml(cls, path: str | Path) -> "Sweep":
-        path = Path(path)
-        with open(path, "rb") as fh:
-            return cls.from_dict(tomllib.load(fh), base_dir=path.parent)
 
     def expand(self) -> list[SweepPoint]:
         axes: list[list[tuple[str, Any]]] = [[(key, v) for v in values] for key, values in self.grid.items()]

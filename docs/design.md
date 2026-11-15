@@ -84,7 +84,7 @@ enforced by `tests/test_architecture.py`, which reads the import statements. (`t
 | a boundary handler | subclass `BoundaryHandler` (`apply`, in place, no random draws) | `register_boundary_handler(name, cls)` | `pso.bound_handling = "name"` |
 | a fitness metric | `metric(outputs, labels) -> float` | `register_fitness_metric(name, fn)` | `training.fitness = "name"` |
 | a PSO variant | a class with `optimise(fitness, space, rng) -> PSOResult` | pass to `PSOTrainer(optimizer=...)` or `run_single(optimizer=...)` | — |
-| a sweep | a TOML file under `configs/sweeps/` (`[grid]` and/or `[fixed_budget]`) | — | `psoann sweep file.toml` |
+| a sweep | an entry in `experiments/presets.py` (`grid` and/or `fixed_budget`) | — | `psoann sweep name` |
 
 Informant matrices have shape `(swarm_size, m)`; every row contains the particle itself in column 0, so
 ties in fitness are resolved in favour of the particle itself.
@@ -145,7 +145,7 @@ alternative the book mentions.
 | D9 | `n_informants` = number of *other* particles drawn per particle; the particle itself is always added (so K=3 means 4 informants in total) | Matches Luke's "x is always one of its own informants"; makes K=1 meaningful | The brief defines K differently |
 | D10 | `clamp` zeroes the velocity component of any clamped dimension (absorbing wall); `reflect` reverses it | Standard behaviour; keeps clamped particles from pressing on the wall | Bound study shows otherwise |
 | D11 | Defaults not fixed by earlier decisions: swarm 30, 100 iterations (3000 evaluations), 70/30 stratified split | Small, fast, reproduces the saturation noted in section 7; **assumptions, not requirements** | The brief prescribes sizes or a split |
-| D12 | Sweeps are TOML files: `[grid]` (cartesian product of dotted keys) and `[fixed_budget]` (swarm sizes at equal evaluations, iterations = budget // swarm) | Studies are data, not code; every point is an ordinary experiment | — |
+| D12 | Sweeps are plain Python dicts in `experiments/presets.py`: `grid` (cartesian product of dotted keys) and `fixed_budget` (swarm sizes at equal evaluations, iterations = budget // swarm) | Studies are declarative data (no config files), every point is an ordinary experiment | — |
 | D13 | `ring` topology uses `max(1, n_informants // 2)` neighbours each side; `global` (alias `all`) uses everyone | Gives the informant study its two extremes without new config keys | — |
 
 ## 7. Open questions for the team
@@ -156,9 +156,9 @@ alternative the book mentions.
 * Which single extension to commit to for "Going further" (bounds, TVAC, activation genes, …).
 * Confirm D11 against the brief (swarm size, iterations, train/test proportions, number of runs, what
   must be reported).
-* Fill in the bibliographic details marked `TODO(verify)` in LITERATURE.md (`make todo`).
+* Fill in the bibliographic details marked `TODO(verify)` in LITERATURE.md.
 * **Saturation.** In smoke tests (3–10 runs, default settings) the banknote task is solved almost
   perfectly (test accuracy ≈ 0.99–1.00), so final accuracy may barely separate settings. Consider
   also reporting convergence speed (`evals_to_final_best`, or `evals_to_target` with `target_fitness`
-  set), using small budgets (`configs/sweeps/swarm_vs_iterations.toml`), and `per_run` splits; decide
+  set), using small budgets (the `swarm_vs_iterations` sweep), and `per_run` splits; decide
   before running the experiments you will report.

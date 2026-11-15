@@ -10,18 +10,29 @@ literature behind the defaults is in [LITERATURE.md](LITERATURE.md).
 ## Quick start
 
 ```bash
-pip install -e ".[dev]"            # numpy + pandas, matplotlib, pytest
-make test                          # 100+ tests, < 2 s
-
-psoann run configs/default.toml                        # 10 runs -> results/default.csv (+ .histories.jsonl)
-psoann run configs/default.toml --runs 3 --seed 7 \
-    --set pso.informants=ring --set ann.hidden_layers=[8,4]
-psoann sweep configs/sweeps/informants.toml            # parameter study -> results/sweep_informants.csv
-psoann summarise results/sweep_informants.csv --by cfg.pso.n_informants
-psoann plot-sweep results/sweep_informants.csv --x cfg.pso.n_informants --y test_accuracy --out informants.png
-psoann plot-convergence results/default.histories.jsonl --out convergence.png
-psoann list                                            # registered activations, topologies, ...
+pip install -e ".[dev]"     # numpy + pandas, matplotlib, pytest
+psoann run                  # 10 runs with the default setup -> results/default.csv
 ```
+
+That's it: it trains the network 10 times and prints the mean test accuracy. Then try a built-in
+parameter study and look at it:
+
+```bash
+psoann sweep topology                                   # -> results/sweep_topology.csv
+psoann summarise results/sweep_topology.csv --by cfg.pso.informants
+```
+
+## Command reference
+
+| Command | What it does |
+|---|---|
+| `psoann run [--runs N] [--seed S] [--set key=value ...]` | one experiment from the defaults; e.g. `--set pso.informants=ring --set ann.hidden_layers=[8,4]` |
+| `psoann sweep NAME` / `psoann sweep all` | built-in parameter study (`psoann list` shows the names) |
+| `psoann summarise CSV --by COLUMN` | mean/std per group |
+| `psoann plot-sweep CSV --x COLUMN --out FILE.png` | metric against a swept column |
+| `psoann plot-convergence HISTORIES.jsonl --out FILE.png` | best-so-far fitness curves |
+| `psoann list` | registered activations, topologies, boundary handlers, metrics, sweeps |
+| `python -m pytest` | the test suite (100+ tests, < 2 s) |
 
 Defaults: 4-8-1 network (49 parameters), tanh hidden / logistic output, 30 particles x 100 iterations
 (3000 fitness evaluations), alpha=0.7298, beta=gamma=1.4962, delta=0, 3 random informants, weights
@@ -31,17 +42,16 @@ bounded to +-2, fitness = training accuracy. Typical result: test accuracy about
 
 ```
 src/psoann/
-  config.py        frozen, validated dataclasses (+ TOML loading, dotted overrides)
+  config.py        frozen, validated dataclasses (dotted overrides)
   registry.py      tiny name -> implementation registry used by every extension point
   data/            CSV loader, stratified split / k-fold, train-only standardiser
   ann/             activations, flat-vector codec, feed-forward network
   pso/             Algorithm 39 optimiser, informant topologies, boundary handling
   evaluation/      fitness metrics (higher is better)
   training/        fitness wrapper + PSOTrainer: the only place ANN and PSO meet
-  experiments/     runner (seeding), sweeps, CSV/JSONL result files
+  experiments/     runner (seeding), sweeps + built-in presets, CSV/JSONL result files
   analysis/        summaries and plots
   cli.py           psoann run | sweep | summarise | plot-convergence | plot-sweep | list
-configs/           default.toml and sweep definitions (configs/sweeps/*.toml)
 data/raw/          banknote.csv (1372 rows, 4 features, 762 of class 0, 610 of class 1)
 tests/             unit, integration and architecture (import rule) tests
 ```

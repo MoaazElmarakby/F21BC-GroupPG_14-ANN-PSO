@@ -1,7 +1,6 @@
 import pytest
 
 from psoann.config import ANNConfig, DataConfig, ExperimentConfig, PSOConfig
-from tests.conftest import REPO
 
 
 def test_defaults_match_the_design_doc():
@@ -12,10 +11,6 @@ def test_defaults_match_the_design_doc():
     assert cfg.data.standardise and cfg.data.split_policy == "fixed"  # D6, section 3
     assert cfg.ann.hidden_layers == (8,) and cfg.ann.hidden_activation == "tanh"  # D7
     assert cfg.training.fitness == "accuracy"  # D2
-
-
-def test_default_toml_is_in_sync_with_dataclass_defaults():
-    assert ExperimentConfig.from_toml(REPO / "configs" / "default.toml") == ExperimentConfig(name="default")
 
 
 def test_budget_is_swarm_times_iterations():

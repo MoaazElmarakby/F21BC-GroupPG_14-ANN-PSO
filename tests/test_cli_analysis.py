@@ -5,15 +5,13 @@ from psoann.analysis.plots import plot_convergence, plot_sweep
 from psoann.analysis.summary import load_results, summarise
 from psoann.cli import main
 from psoann.experiments import read_jsonl
-from tests.conftest import REPO
 
-DEFAULT = str(REPO / "configs" / "default.toml")
 FAST = ["--set", "pso.swarm_size=6", "--set", "pso.iterations=4"]
 
 
 @pytest.fixture
 def results_dir(tmp_path):
-    assert main(["run", DEFAULT, "--runs", "3", *FAST, "--out", str(tmp_path)]) == 0
+    assert main(["run", "--runs", "3", *FAST, "--out", str(tmp_path)]) == 0
     return tmp_path
 
 
@@ -24,24 +22,22 @@ def test_run_writes_csv_and_histories(results_dir):
 
 
 def test_seed_and_overrides_from_the_command_line(tmp_path):
-    main(["run", DEFAULT, "--runs", "1", "--seed", "7", *FAST, "--set", "ann.hidden_layers=[4,2]",
+    main(["run", "--runs", "1", "--seed", "7", *FAST, "--set", "ann.hidden_layers=[4,2]",
           "--set", "pso.informants=ring", "--out", str(tmp_path)])
     row = pd.read_csv(tmp_path / "default.csv").iloc[0]
     assert row["base_seed"] == 7 and row["cfg.ann.hidden_layers"] == "4-2" and row["cfg.pso.informants"] == "ring"
 
 
 def test_bad_overrides_exit_with_an_error(tmp_path, capsys):
-    assert main(["run", DEFAULT, "--set", "pso.alfa=1", "--out", str(tmp_path)]) == 2
+    assert main(["run", "--set", "pso.alfa=1", "--out", str(tmp_path)]) == 2
     assert "unknown config key" in capsys.readouterr().err
-    assert main(["run", str(tmp_path / "missing.toml"), "--out", str(tmp_path)]) == 2
+    assert main(["sweep", "nonexistent", "--out", str(tmp_path)]) == 2
 
 
 def test_sweep_command(tmp_path):
-    sweep = tmp_path / "s.toml"
-    sweep.write_text(f'name = "s"\nbase = "{DEFAULT}"\n[grid]\n"pso.n_informants" = [2, 3]\n')
-    assert main(["sweep", str(sweep), "--runs", "2", *FAST, "--out", str(tmp_path)]) == 0
-    df = pd.read_csv(tmp_path / "sweep_s.csv")
-    assert len(df) == 4 and set(df["cfg.pso.n_informants"]) == {2, 3}
+    assert main(["sweep", "topology", "--runs", "2", *FAST, "--out", str(tmp_path)]) == 0
+    df = pd.read_csv(tmp_path / "sweep_topology.csv")
+    assert len(df) == 6 and set(df["cfg.pso.informants"]) == {"random", "ring", "global"}
 
 
 def test_summarise_command_and_function(results_dir, capsys):

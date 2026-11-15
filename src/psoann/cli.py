@@ -6,9 +6,12 @@ import argparse
 import ast
 import sys
 from pathlib import Path
-from typing import Any, Sequence
+from typing import TYPE_CHECKING, Any, Sequence
 
 from psoann.config import ExperimentConfig
+
+if TYPE_CHECKING:
+    from psoann.experiments.sweep import Sweep
 
 
 def _parse_assignments(items: Sequence[str]) -> dict[str, Any]:
@@ -32,7 +35,7 @@ def _progress(done: int, total: int) -> None:
 def _cmd_run(args: argparse.Namespace) -> int:
     from psoann.experiments import run_experiment, write_results
 
-    config = ExperimentConfig.from_toml(args.config)
+    config = ExperimentConfig(name=args.name)
     overrides = _parse_assignments(args.set)
     if args.runs is not None:
         overrides["n_runs"] = args.runs
@@ -49,9 +52,17 @@ def _cmd_run(args: argparse.Namespace) -> int:
 
 
 def _cmd_sweep(args: argparse.Namespace) -> int:
+    from psoann.experiments import SWEEPS, get_sweep
+
+    names = sorted(SWEEPS) if args.sweep == "all" else [args.sweep]
+    for name in names:
+        _run_one_sweep(get_sweep(name), args)
+    return 0
+
+
+def _run_one_sweep(sweep: Sweep, args: argparse.Namespace) -> None:
     from psoann.experiments import Sweep, run_sweep, write_results
 
-    sweep = Sweep.from_toml(args.sweep)
     overrides = _parse_assignments(args.set)
     if args.runs is not None:
         overrides["n_runs"] = args.runs
@@ -62,7 +73,6 @@ def _cmd_sweep(args: argparse.Namespace) -> int:
     rows, histories = run_sweep(sweep, progress=lambda i, n, p: print(f"  point {i}/{n}: {p.point_id}", file=sys.stderr, flush=True))
     csv_path, hist_path = write_results(args.out, f"sweep_{sweep.name}", rows, histories)
     print(f"wrote {csv_path} and {hist_path}")
-    return 0
 
 
 def _cmd_summarise(args: argparse.Namespace) -> int:
@@ -91,6 +101,7 @@ def _cmd_plot_sweep(args: argparse.Namespace) -> int:
 
 def _cmd_list(_: argparse.Namespace) -> int:
     from psoann.ann import available_activations
+    from psoann.experiments import SWEEPS
     from psoann.evaluation import available_fitness_metrics
     from psoann.pso import available_boundary_handlers, available_informant_strategies
 
@@ -99,6 +110,7 @@ def _cmd_list(_: argparse.Namespace) -> int:
         ("informant strategies", available_informant_strategies()),
         ("boundary handlers", available_boundary_handlers()),
         ("fitness metrics", available_fitness_metrics()),
+        ("sweeps", sorted(SWEEPS)),
     ):
         print(f"{title}: {', '.join(names)}")
     return 0
@@ -108,16 +120,16 @@ def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(prog="psoann", description="Train an ANN with PSO (Algorithm 39).")
     sub = parser.add_subparsers(dest="command", required=True)
 
-    run = sub.add_parser("run", help="run one experiment from a TOML config")
-    run.add_argument("config", type=Path)
+    run = sub.add_parser("run", help="run one experiment (default config + overrides)")
+    run.add_argument("--name", default="default", help="experiment name, used for the output file names")
     run.add_argument("--runs", type=int, help="override n_runs")
     run.add_argument("--seed", type=int, help="override base_seed")
     run.add_argument("--set", action="append", default=[], metavar="KEY=VALUE", help="override a config key, e.g. pso.alpha=0.5")
     run.add_argument("--out", type=Path, default=Path("results"))
     run.set_defaults(func=_cmd_run)
 
-    sweep = sub.add_parser("sweep", help="run a parameter sweep from a TOML file")
-    sweep.add_argument("sweep", type=Path)
+    sweep = sub.add_parser("sweep", help="run a built-in parameter sweep by name, or 'all'")
+    sweep.add_argument("sweep", metavar="NAME", help="a sweep name (see `psoann list`) or 'all'")
     sweep.add_argument("--runs", type=int, help="override n_runs for every point")
     sweep.add_argument("--set", action="append", default=[], metavar="KEY=VALUE", help="override a base config key")
     sweep.add_argument("--out", type=Path, default=Path("results"))
@@ -143,7 +155,7 @@ def build_parser() -> argparse.ArgumentParser:
     plot.add_argument("--out", type=Path, required=True)
     plot.set_defaults(func=_cmd_plot_sweep)
 
-    lst = sub.add_parser("list", help="show registered activations, topologies, boundary handlers and metrics")
+    lst = sub.add_parser("list", help="show registered activations, topologies, boundary handlers, metrics and sweeps")
     lst.set_defaults(func=_cmd_list)
     return parser
 
