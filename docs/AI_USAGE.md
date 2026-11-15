@@ -25,8 +25,15 @@ Claude Code (Anthropic), model Claude Sonnet 5.5 (`claude-sonnet-5-5`), used in 
 
 ## What the AI did not do
 
-- It did not run the reported experiments, interpret results, or write any report text.
+- It did not interpret results or write any report text.
 - It did not verify citations. `LITERATURE.md` lists what still has to be read and checked by you.
+
+## Experiment runs
+
+On 15 November 2026 the AI executed `psoann sweep all --out results` (30 runs per setting; the two pilot studies use 10),
+producing `results/*.csv` and `results/*.histories.jsonl` (2200 runs, about 5 minutes). It ran the code unchanged and did not
+select or edit any numbers. The coursework says the experiments are your own work: decide whether to rerun them yourselves
+(one command) and state in the report who ran them.
 
 ## Not covered by this log
 
