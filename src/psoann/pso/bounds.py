@@ -3,11 +3,13 @@
 ``apply`` modifies ``positions`` (and ``velocities``) in place. Handlers never draw random numbers
 themselves: a handler that needs randomness (``random``) receives a pre-drawn ``noise`` matrix of
 uniforms with the shape of ``positions``. The optimiser always draws that matrix, so its random
-stream does not depend on the handler (see design doc, section 3).
+stream does not depend on the handler (see design doc, section 3). A handler that needs to know where
+the particles came from (``reject``) receives ``previous``, the positions before the move.
 
 Strategies (compared in the boundary study, ``psoann sweep bounds``):
 
 * ``clamp``   - absorbing wall: stop on the boundary, zero that velocity component;
+* ``reject``  - cancel the move in the offending coordinate only (velocity unchanged);
 * ``reflect`` - elastic wall: mirror the overshoot back inside, reverse that velocity component;
 * ``wrap``    - periodic space: leave on one side, re-enter on the other (velocity unchanged);
 * ``random``  - re-initialise the offending coordinate uniformly inside the bounds, zero its velocity;
@@ -31,14 +33,32 @@ Matrix = NDArray[np.float64]
 
 class BoundaryHandler(ABC):
     @abstractmethod
-    def apply(self, positions: Matrix, velocities: Matrix, space: SearchSpace, noise: Matrix | None = None) -> None:
-        """Bring every row of ``positions`` back inside ``space`` (in place)."""
+    def apply(
+        self,
+        positions: Matrix,
+        velocities: Matrix,
+        space: SearchSpace,
+        noise: Matrix | None = None,
+        previous: Matrix | None = None,
+    ) -> None:
+        """Bring every row of ``positions`` back inside ``space`` (in place).
+
+        ``noise`` (uniforms shaped like ``positions``) and ``previous`` (positions before the move) are
+        always passed by the optimiser; most handlers ignore them.
+        """
 
 
 class ClampBoundary(BoundaryHandler):
     """Absorbing wall: put the particle on the boundary and zero that velocity component."""
 
-    def apply(self, positions: Matrix, velocities: Matrix, space: SearchSpace, noise: Matrix | None = None) -> None:
+    def apply(
+        self,
+        positions: Matrix,
+        velocities: Matrix,
+        space: SearchSpace,
+        noise: Matrix | None = None,
+        previous: Matrix | None = None,
+    ) -> None:
         outside = (positions < space.lower) | (positions > space.upper)
         np.clip(positions, space.lower, space.upper, out=positions)
         velocities[outside] = 0.0
@@ -47,7 +67,14 @@ class ClampBoundary(BoundaryHandler):
 class ReflectBoundary(BoundaryHandler):
     """Elastic wall: mirror the overshoot back inside and reverse that velocity component."""
 
-    def apply(self, positions: Matrix, velocities: Matrix, space: SearchSpace, noise: Matrix | None = None) -> None:
+    def apply(
+        self,
+        positions: Matrix,
+        velocities: Matrix,
+        space: SearchSpace,
+        noise: Matrix | None = None,
+        previous: Matrix | None = None,
+    ) -> None:
         over = positions > space.upper
         under = positions < space.lower
         positions[over] = (2.0 * np.broadcast_to(space.upper, positions.shape) - positions)[over]
@@ -56,10 +83,38 @@ class ReflectBoundary(BoundaryHandler):
         np.clip(positions, space.lower, space.upper, out=positions)  # overshoot larger than the span
 
 
+class RejectBoundary(BoundaryHandler):
+    """Reject the update of any coordinate that would leave the space; the other coordinates still move.
+
+    The velocity is left alone (only the position update is rejected), so the particle slides along
+    the wall and may try the same coordinate again on the next move.
+    """
+
+    def apply(
+        self,
+        positions: Matrix,
+        velocities: Matrix,
+        space: SearchSpace,
+        noise: Matrix | None = None,
+        previous: Matrix | None = None,
+    ) -> None:
+        if previous is None or previous.shape != positions.shape:
+            raise ValueError("the 'reject' boundary handler needs the positions before the move")
+        outside = (positions < space.lower) | (positions > space.upper)
+        positions[outside] = previous[outside]
+
+
 class WrapBoundary(BoundaryHandler):
     """Periodic space (a torus): a coordinate leaving one side re-enters from the opposite side."""
 
-    def apply(self, positions: Matrix, velocities: Matrix, space: SearchSpace, noise: Matrix | None = None) -> None:
+    def apply(
+        self,
+        positions: Matrix,
+        velocities: Matrix,
+        space: SearchSpace,
+        noise: Matrix | None = None,
+        previous: Matrix | None = None,
+    ) -> None:
         outside = (positions < space.lower) | (positions > space.upper)
         if outside.any():
             wrapped = space.lower + np.mod(positions - space.lower, space.span)
@@ -70,7 +125,14 @@ class WrapBoundary(BoundaryHandler):
 class RandomBoundary(BoundaryHandler):
     """Random re-initialisation: an offending coordinate is redrawn uniformly in the bounds, velocity zeroed."""
 
-    def apply(self, positions: Matrix, velocities: Matrix, space: SearchSpace, noise: Matrix | None = None) -> None:
+    def apply(
+        self,
+        positions: Matrix,
+        velocities: Matrix,
+        space: SearchSpace,
+        noise: Matrix | None = None,
+        previous: Matrix | None = None,
+    ) -> None:
         if noise is None or noise.shape != positions.shape:
             raise ValueError("the 'random' boundary handler needs a noise matrix shaped like the positions")
         outside = (positions < space.lower) | (positions > space.upper)
@@ -82,7 +144,14 @@ class RandomBoundary(BoundaryHandler):
 class NoBoundary(BoundaryHandler):
     """Unbounded search (the space only fixes the initial sampling region)."""
 
-    def apply(self, positions: Matrix, velocities: Matrix, space: SearchSpace, noise: Matrix | None = None) -> None:
+    def apply(
+        self,
+        positions: Matrix,
+        velocities: Matrix,
+        space: SearchSpace,
+        noise: Matrix | None = None,
+        previous: Matrix | None = None,
+    ) -> None:
         return None
 
 
@@ -102,6 +171,7 @@ def make_boundary_handler(name: str) -> BoundaryHandler:
 
 
 register_boundary_handler("clamp", ClampBoundary)
+register_boundary_handler("reject", RejectBoundary)
 register_boundary_handler("reflect", ReflectBoundary)
 register_boundary_handler("wrap", WrapBoundary)
 register_boundary_handler("random", RandomBoundary)

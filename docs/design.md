@@ -32,7 +32,7 @@ matplotlib only in `analysis/`).
    ▼                 ▼                          ▼
  data/             ann/                        pso/
  loader, split,    activations, network,       optimizer (Algorithm 39),
- scaler            codec                       informants, bounds, types
+ scaler            codec                       informants, bounds, schedules, types
    │                 │                          │        evaluation/
    │                 │                          │        metrics
    │                 └──────────┬───────────────┴────────────┐
@@ -67,7 +67,7 @@ enforced by `tests/test_architecture.py`, which reads the import statements. (`t
 | Direction | **Fitness is maximised everywhere** (matches Algorithm 39). Losses are negated (`neg_mse`). |
 | Randomness | No global RNG. Everything takes a `numpy.random.Generator`. |
 | Seeding | Run *i* uses `SeedSequence(base_seed, spawn_key=(i,))`, which is exactly child *i* of `SeedSequence(base_seed).spawn(n_runs)`, so run *i* is independent of `n_runs`. Each run spawns separate streams for the split and for PSO. The `fixed` split uses `SeedSequence([base_seed, 1])`. |
-| RNG draws | PSO draws the same random numbers regardless of coefficient values (and regardless of the boundary handler and of K for random informants), so a sweep over α/β/γ/δ compares like with like (same initial swarm). |
+| RNG draws | PSO draws the same random numbers regardless of coefficient values and coefficient schedule (and regardless of the boundary handler and of K for random informants), so a sweep over α/β/γ/δ compares like with like (same initial swarm). |
 | Evaluation budget | `swarm_size × iterations` fitness calls, exactly. The final position update is not assessed. |
 | Split policy | `fixed` (default): one split for all runs, so the run-to-run std measures PSO stochasticity only. `per_run`: new split each run. Splits are stratified; standardisation uses training statistics only. |
 | Parameter vector | Per layer: weights (`n_in × n_out`, row-major) then biases (`n_out`); layers concatenated in order. Length = Σ (n_in·n_out + n_out). |
@@ -81,7 +81,8 @@ enforced by `tests/test_architecture.py`, which reads the import statements. (`t
 |---|---|---|---|
 | an activation | `fn(x) -> x` | `register_activation(name, fn)` | `ann.hidden_activation = "name"` |
 | an informant topology | subclass `InformantStrategy` (`build`, optionally `regenerate`) | `register_informant_strategy(name, lambda cfg: Strategy(...))` | `pso.informants = "name"` |
-| a boundary handler | subclass `BoundaryHandler` (`apply`, in place, no random draws) | `register_boundary_handler(name, cls)` | `pso.bound_handling = "name"` |
+| a boundary handler | subclass `BoundaryHandler` (`apply`, in place, no random draws; it receives the pre-drawn `noise` and the `previous` positions) | `register_boundary_handler(name, cls)` | `pso.bound_handling = "name"` |
+| a coefficient schedule | subclass `CoefficientSchedule` (`at(progress) -> Coefficients`, no random draws) | `register_coefficient_schedule(name, lambda cfg: Schedule(...))` | `pso.schedule = "name"` |
 | a fitness metric | `metric(outputs, labels) -> float` | `register_fitness_metric(name, fn)` | `training.fitness = "name"` |
 | a PSO variant | a class with `optimise(fitness, space, rng) -> PSOResult` | pass to `PSOTrainer(optimizer=...)` or `run_single(optimizer=...)` | — |
 | a sweep | an entry in `experiments/presets.py` (`grid` and/or `fixed_budget`) | — | `psoann sweep name` |
@@ -98,16 +99,20 @@ Implemented since the base (all selected by config, none changes the default beh
   provides its own per-dimension bounds (`network.bounds(b)`), so `ann/` never imports `pso/`.
 * **Position-based informants** (`pso.informants = "nearest"`): the `k` nearest particles in search
   space, recomputed every iteration (`InformantStrategy.uses_positions`).
-* **Boundary rules** `wrap` and `random` besides `clamp`, `reflect`, `none`. `random` needs random numbers,
-  so the optimiser always draws one noise matrix per move and passes it to every handler: the random
-  stream is identical whichever handler is used.
+* **Boundary rules** `reject`, `wrap` and `random` besides `clamp`, `reflect`, `none`. `random` needs random
+  numbers, so the optimiser always draws one noise matrix per move and passes it to every handler: the
+  random stream is identical whichever handler is used. `reject` cancels the move in the offending
+  coordinate only, so every handler also receives the positions before the move (`previous`).
+  `clamp`, `reject`, `reflect` and `random` are the four strategies of the Week 7 lecture.
+* **Coefficient schedules** (`pso.schedule`, `pso/schedules.py`): `constant` (Algorithm 39 as written,
+  the default), `linear_inertia` (α 0.9 → 0.4) and `tvac` (β 2.5 → 0.5 while γ 0.5 → 2.5). The optimiser
+  asks the schedule for α, β, γ, δ before every velocity update; `progress` runs from 0 at the first move
+  to 1 at the last. Coefficients a schedule does not name keep their config values.
 * **Random-search control** (`training.optimizer = "random_search"`): same budget, same history keys.
-* **Studies as data**: `experiments/presets.py` defines Q0 to Q7; sweeps accept explicit `points`.
+* **Studies as data**: `experiments/presets.py` defines Q0 to Q8; sweeps accept explicit `points`.
 
 Still planned (deliberately not implemented):
 
-* **Adaptive/time-varying coefficients**: `ParticleSwarmOptimizer` reads α, β, γ, δ once; introduce a
-  small `CoefficientSchedule` protocol and call it at the top of each iteration.
 * **Cross-validation**: `data.split.stratified_kfold` exists (and is tested); add a runner mode that
   loops folds.
 
@@ -119,7 +124,7 @@ number turned out to be right). The code comments use the form `[Alg. 39, line N
 
 | Alg. 39 | Meaning | Code (`pso/optimizer.py`) |
 |---|---|---|
-| 1–6 | parameters: swarm size, α, β, γ, δ, ε | `PSOConfig` fields |
+| 1–6 | parameters: swarm size, α, β, γ, δ, ε | `PSOConfig` fields (α, β, γ, δ reach the update through `self.schedule.at(...)`, fixed by default) |
 | 7–9 | create random particles with random velocities | `_initialise_swarm` |
 | 10 | `Best ← ∅` | `gbest_fitness = -inf` in `optimise` |
 | 11, 27 | repeat … until out of time | the `for iteration` loop (budget = swarm × iterations) |
@@ -139,8 +144,8 @@ but does not move.
 
 Deliberate departures from the pseudo-code (all optional and off by default unless stated):
 boundary handling (`bound_handling`, default `clamp`), optional velocity clamping
-(`max_velocity_fraction`), informant resampling (`regenerate_informants`) and position-based informants
-(`nearest`). Initial velocity follows
+(`max_velocity_fraction`), informant resampling (`regenerate_informants`), position-based informants
+(`nearest`) and time-varying coefficients (`schedule`, default `constant`). Initial velocity follows
 the book's default (half the vector between two random points); `initial_velocity = "zero"` is the
 alternative the book mentions.
 
@@ -165,6 +170,8 @@ alternative the book mentions.
 | D16 | Random-search control uses `swarm_size` samples per "iteration" | Identical evaluation count and history shape as PSO | — |
 | D17 | Statistics are non-parametric (Kruskal-Wallis, Mann-Whitney with Holm, A12) | Accuracy saturates near 1.0 and has ties; no normality assumption | — |
 | D18 | Models are selected on training fitness only (pilots); the test set is for reporting | Selecting on the test set is a validity flaw | — |
+| D19 | Time-varying coefficients are named schedules with the literature's values built in: `linear_inertia` α 0.9 → 0.4 (Shi and Eberhart 1999), `tvac` β 2.5 → 0.5 and γ 0.5 → 2.5 (Ratnaweera et al. 2004) | One config key makes the comparison a three-setting study (Q8) and keeps each start/end pair together; `constant` leaves every earlier result bit-identical | A study needs other start/end values (register another schedule) |
+| D20 | `reject` cancels the move only in the offending coordinates and leaves the velocity alone | The lecture's strategy 2; completes the lecture's four strategies in the boundary study (Q5) | Bound study shows otherwise |
 | D13 | `ring` topology uses `max(1, n_informants // 2)` neighbours each side; `global` (alias `all`) uses everyone | Gives the informant study its two extremes without new config keys | — |
 
 ## 7. Open questions for the team

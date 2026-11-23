@@ -15,6 +15,7 @@ setting or by none.
     Q5  bounds               boundary handling rule
     Q6  activations          fixed activations against evolved activation genes
     Q7  fitness              error rate (accuracy), MSE, cross-entropy as the fitness
+    Q8  schedule             fixed coefficients against time-varying ones (inertia, TVAC)
     --  pilot_bound, pilot_velocity   hidden hyperparameters, judged on training fitness only
 """
 
@@ -87,7 +88,7 @@ SWEEPS: dict[str, Sweep] = {
         _study("swarm_vs_iterations", points=_budget_points()),
         _study("coefficients", points=_coefficient_points()),
         _study("informants", points=_informant_points()),
-        _study("bounds", grid={"pso.bound_handling": ["clamp", "reflect", "wrap", "random", "none"]}),
+        _study("bounds", grid={"pso.bound_handling": ["clamp", "reject", "reflect", "wrap", "random", "none"]}),
         _study(
             "activations",
             overrides={"ann.hidden_layers": [8, 8]},
@@ -100,6 +101,7 @@ SWEEPS: dict[str, Sweep] = {
             ],
         ),
         _study("fitness", grid={"training.fitness": ["accuracy", "neg_mse", "neg_cross_entropy"]}),
+        _study("schedule", grid={"pso.schedule": ["constant", "linear_inertia", "tvac"]}),
         # Pilots for hidden hyperparameters: choose from training fitness only (never the test set).
         _study("pilot_bound", overrides={"n_runs": 10}, grid={"pso.bound": [0.5, 1.0, 2.0, 4.0, 8.0]}),
         _study("pilot_velocity", overrides={"n_runs": 10}, grid={"pso.initial_velocity": ["half_diff", "zero"]}),

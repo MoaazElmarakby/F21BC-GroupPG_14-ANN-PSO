@@ -118,6 +118,7 @@ class PSOConfig:
     bound_handling: str = "clamp"
     max_velocity_fraction: float | None = None  # optional |v_d| <= fraction * (upper_d - lower_d)
     initial_velocity: str = "half_diff"
+    schedule: str = "constant"  # coefficient schedule name: "constant" keeps alpha..delta fixed (Algorithm 39)
 
     def __post_init__(self) -> None:
         _require(_is_int(self.swarm_size) and self.swarm_size >= 2, "pso.swarm_size must be an int >= 2")
@@ -126,6 +127,7 @@ class PSOConfig:
             _require(_as_float(self, name) >= 0.0, f"pso.{name} must be >= 0")
         _require(_as_float(self, "epsilon") > 0.0, "pso.epsilon must be > 0")
         _require(_as_float(self, "bound") > 0.0, "pso.bound must be > 0")
+        _require(isinstance(self.schedule, str) and self.schedule, "pso.schedule must be a name")
         _require(isinstance(self.informants, str) and self.informants, "pso.informants must be a name")
         _require(_is_int(self.n_informants) and self.n_informants >= 1, "pso.n_informants must be an int >= 1")
         _require(isinstance(self.regenerate_informants, bool), "pso.regenerate_informants must be a bool")

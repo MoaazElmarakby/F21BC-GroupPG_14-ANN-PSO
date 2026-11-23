@@ -68,12 +68,26 @@ def test_random_boundary_redraws_only_offending_coordinates(space):
     np.testing.assert_array_equal(vel, [[0.0, 3.0]])
 
 
+def test_reject_cancels_only_the_offending_coordinates(space):
+    previous = np.array([[0.5, 0.2], [0.0, -0.9]])
+    pos = np.array([[1.5, 0.6], [0.3, -1.4]])  # one coordinate of each particle left the space
+    vel = np.array([[1.0, 0.4], [0.3, -0.5]])
+    make_boundary_handler("reject").apply(pos, vel, space, None, previous)
+    np.testing.assert_array_equal(pos, [[0.5, 0.6], [0.3, -0.9]])
+    np.testing.assert_array_equal(vel, [[1.0, 0.4], [0.3, -0.5]])  # velocity untouched
+
+
+def test_reject_needs_the_previous_positions(space):
+    with pytest.raises(ValueError, match="before the move"):
+        make_boundary_handler("reject").apply(np.array([[2.0, 0.0]]), np.zeros((1, 2)), space)
+
+
 def test_random_boundary_needs_noise(space):
     with pytest.raises(ValueError, match="noise"):
         make_boundary_handler("random").apply(np.array([[2.0, 0.0]]), np.zeros((1, 2)), space)
 
 
-@pytest.mark.parametrize("handler", ["clamp", "reflect", "wrap", "random"])
+@pytest.mark.parametrize("handler", ["clamp", "reject", "reflect", "wrap", "random"])
 def test_every_bounded_handler_keeps_the_swarm_inside_and_counts_hits(handler):
     seen = []
 
@@ -94,7 +108,7 @@ def test_random_stream_is_the_same_for_every_boundary_handler():
         ParticleSwarmOptimizer(
             PSOConfig(swarm_size=8, iterations=10, bound_handling=h, max_velocity_fraction=1e-6)
         ).optimise(lambda x: -float(np.sum(x**2)), SearchSpace.symmetric(3, 2.0), np.random.default_rng(3))
-        for h in ("clamp", "reflect", "wrap", "random", "none")
+        for h in ("clamp", "reject", "reflect", "wrap", "random", "none")
     ]
     assert all(run.history["boundary_hits"].sum() == 0 for run in runs)
     for other in runs[1:]:
@@ -246,12 +260,12 @@ def sizes():
 def test_study_presets_match_the_study_plan():
     n = sizes()
     assert n["architecture"] == 13 and n["swarm_vs_iterations"] == 12 and n["coefficients"] == 15
-    assert n["informants"] == 16 and n["bounds"] == 5 and n["activations"] == 5 and n["fitness"] == 3
-    assert n["random_search"] == 2
+    assert n["informants"] == 16 and n["bounds"] == 6 and n["activations"] == 5 and n["fitness"] == 3
+    assert n["random_search"] == 2 and n["schedule"] == 3
 
 
 def test_study_presets_use_30_runs_and_a_fixed_budget():
-    for name in ("architecture", "coefficients", "informants", "bounds", "activations", "fitness", "random_search"):
+    for name in ("architecture", "coefficients", "informants", "bounds", "activations", "fitness", "random_search", "schedule"):
         for point in SWEEPS[name].expand():
             assert point.config.n_runs == 30 and point.config.pso.budget == 2000, (name, point.point_id)
     budgets = {p.config.pso.budget for p in SWEEPS["swarm_vs_iterations"].expand()}

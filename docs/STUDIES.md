@@ -18,12 +18,13 @@ psoann sweep architecture --out results
 | Q2 (required) | `swarm_vs_iterations` | 12 | How best to spend a fixed budget (500 and 2000 evals)? | A mid-size swarm beats both extremes (the brief's 10x50 against 50x10 example) |
 | Q3 (required) | `coefficients` | 15 | Social against cognitive balance? | Slide 14: too much beta is egocentric, too much gamma stagnates, too much delta converges early. Pilot first: beta+gamma+delta = 4 with alpha 0.7298 may be unstable |
 | Q4 | `informants` | 16 | Do the number and choice of informants matter? | Slide 9: using the whole population converges prematurely. Strategies: global, random fixed, random regenerated, nearest-neighbour; k = 1, 2, 3, 5, 10 |
-| Q5 | `bounds` | 5 | Does the boundary rule matter? | Slide 26 invites exploring it; `boundary_hits` explains differences |
+| Q5 | `bounds` | 6 | Does the boundary rule matter? | Slide 26 invites exploring it; `boundary_hits` explains differences. `clamp`, `reject`, `reflect`, `random` are the lecture's four strategies |
 | Q6 | `activations` | 5 | Fixed or evolved activation function? | The brief promises extra marks for activations inside the particle. Compare against the best fixed choice (2 hidden layers of 8) |
 | Q7 | `fitness` | 3 | Does the fitness function matter? | The error-rate landscape has plateaus; smooth losses may help. Compare on test accuracy and F1, **not** on each other's `best_fitness` values |
+| Q8 | `schedule` | 3 | Do time-varying coefficients beat fixed ones? | Decreasing inertia moves from exploration to exploitation (Shi and Eberhart 1999); TVAC shifts weight from the personal best to the informants (Ratnaweera et al. 2004). Compare on evaluations-to-target as well as accuracy; `diversity` shows the mechanism |
 | pilots | `pilot_bound`, `pilot_velocity` | 5, 2 | Hidden hyperparameters | Choose weight bound and initial velocity on **training** fitness only, then justify each in one line |
 
-71 settings x 30 runs = 2130 runs for Q0 to Q7.
+75 settings x 30 runs = 2250 runs for Q0 to Q8.
 
 ## Reading the results
 
@@ -52,5 +53,9 @@ separates settings, so use it.
   half the vector between two random points). Judge them on training fitness and keep the choice in the report.
 * The dataset has 24 duplicate rows (1.7 percent) that are kept as specified; mention possible train/test
   leakage as a limitation.
-* The five boundary rules are clamp, reflect, wrap, random re-initialisation and none. Check them against
-  the names on the boundary-handling lecture slide and rename or swap one if the lecture lists a different set.
+* The six boundary rules are clamp, reject, reflect, wrap, random re-initialisation and none. The lecture
+  lists four strategies (truncate, reject the update, bounce, re-initialise): these are `clamp`, `reject`,
+  `reflect` and `random`. Note that `random` redraws only the offending coordinate, where the lecture
+  re-initialises the particle; say so in the report.
+* The schedule values (inertia 0.9 to 0.4; TVAC 2.5 to 0.5 and 0.5 to 2.5) are constants at the top of
+  `pso/schedules.py`. Check them against the two papers before citing them.

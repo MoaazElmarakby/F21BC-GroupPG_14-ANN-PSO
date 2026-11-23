@@ -14,9 +14,10 @@ Assumptions the pseudo-code leaves open (fixed here and documented in docs/desig
   so changing a coefficient never changes the random stream: sweeps compare like with like.
 
 Deliberate departures from the pseudo-code, selectable in ``PSOConfig``: boundary handling
-(``bound_handling``: clamp, reflect, wrap, random, none), optional velocity clamping
-(``max_velocity_fraction``), optional per-iteration informant redrawing (``regenerate_informants``) and
-position-based informants (``informants = "nearest"``, recomputed every iteration).
+(``bound_handling``: clamp, reject, reflect, wrap, random, none), optional velocity clamping
+(``max_velocity_fraction``), optional per-iteration informant redrawing (``regenerate_informants``),
+position-based informants (``informants = "nearest"``, recomputed every iteration) and coefficients
+that change during the run (``schedule``; the default ``constant`` is Algorithm 39 as written).
 """
 
 from __future__ import annotations
@@ -27,6 +28,7 @@ from numpy.typing import NDArray
 from psoann.config import PSOConfig
 from psoann.pso.bounds import BoundaryHandler, make_boundary_handler
 from psoann.pso.informants import InformantStrategy, make_informant_strategy
+from psoann.pso.schedules import CoefficientSchedule, Coefficients, make_coefficient_schedule
 from psoann.pso.types import Fitness, PSOResult, SearchSpace
 
 Matrix = NDArray[np.float64]
@@ -38,10 +40,12 @@ class ParticleSwarmOptimizer:
         config: PSOConfig,
         informants: InformantStrategy | None = None,
         boundary: BoundaryHandler | None = None,
+        schedule: CoefficientSchedule | None = None,
     ) -> None:
         self.config = config
         self.informants = informants if informants is not None else make_informant_strategy(config)
         self.boundary = boundary if boundary is not None else make_boundary_handler(config.bound_handling)
+        self.schedule = schedule if schedule is not None else make_coefficient_schedule(config)
 
     # ------------------------------------------------------------------------------------------
     def optimise(self, fitness: Fitness, space: SearchSpace, rng: np.random.Generator) -> PSOResult:
@@ -95,19 +99,24 @@ class ParticleSwarmOptimizer:
             # [Alg. 39, lines 16-19] for each particle: x*, x+ (best among informants), x!
             informant_best = self._informant_best(informants, pbest_position, pbest_fitness)
 
+            # [Alg. 39, lines 2-5] alpha, beta, gamma, delta for this update (fixed unless a schedule is set);
+            # progress runs from 0 at the first move to 1 at the last
+            coefficients = self.schedule.at(iteration / max(1, cfg.iterations - 2))
+
             # [Alg. 39, lines 20-24] per-dimension random mixing and velocity update
             randoms = rng.random((3, swarm, dim))
             velocities = self._update_velocity(
-                velocities, positions, pbest_position, informant_best, gbest_position, randoms
+                velocities, positions, pbest_position, informant_best, gbest_position, randoms, coefficients
             )
             if max_velocity is not None:
                 np.clip(velocities, -max_velocity, max_velocity, out=velocities)
 
             # [Alg. 39, lines 25-26] x <- x + epsilon * v   (then boundary handling)
+            previous = positions
             positions = self._move(positions, velocities)
             noise = rng.random((swarm, dim))  # always drawn, so the stream is the same for every handler
             boundary_hits = int(np.sum((positions < space.lower) | (positions > space.upper)))
-            self.boundary.apply(positions, velocities, space, noise)
+            self.boundary.apply(positions, velocities, space, noise, previous)
 
         # [Alg. 39, line 28] return Best
         return PSOResult(
@@ -164,17 +173,19 @@ class ParticleSwarmOptimizer:
         informant_best: Matrix,
         global_best: NDArray[np.float64],
         randoms: NDArray[np.float64],
+        coefficients: Coefficients | None = None,
     ) -> Matrix:
         """[Alg. 39, line 24]  v_i <- alpha*v_i + b(x*_i - x_i) + c(x+_i - x_i) + d(x!_i - x_i)
 
         with b ~ U(0, beta), c ~ U(0, gamma), d ~ U(0, delta) drawn per particle and per dimension.
+        ``coefficients`` defaults to the fixed values in the config.
         """
-        cfg = self.config
-        b = cfg.beta * randoms[0]  # [Alg. 39, line 21]
-        c = cfg.gamma * randoms[1]  # [Alg. 39, line 22]
-        d = cfg.delta * randoms[2]  # [Alg. 39, line 23]
+        k = coefficients if coefficients is not None else Coefficients.from_config(self.config)
+        b = k.beta * randoms[0]  # [Alg. 39, line 21]
+        c = k.gamma * randoms[1]  # [Alg. 39, line 22]
+        d = k.delta * randoms[2]  # [Alg. 39, line 23]
         return (
-            cfg.alpha * velocities
+            k.alpha * velocities
             + b * (personal_best - positions)
             + c * (informant_best - positions)
             + d * (global_best - positions)

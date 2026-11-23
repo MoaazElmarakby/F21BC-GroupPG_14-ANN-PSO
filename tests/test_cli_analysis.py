@@ -37,7 +37,8 @@ def test_bad_overrides_exit_with_an_error(tmp_path, capsys):
 def test_sweep_command(tmp_path):
     assert main(["sweep", "bounds", "--runs", "2", *FAST, "--out", str(tmp_path)]) == 0
     df = pd.read_csv(tmp_path / "sweep_bounds.csv")
-    assert len(df) == 10 and set(df["cfg.pso.bound_handling"]) == {"clamp", "reflect", "wrap", "random", "none"}
+    assert len(df) == 12
+    assert set(df["cfg.pso.bound_handling"]) == {"clamp", "reject", "reflect", "wrap", "random", "none"}
 
 
 def test_summarise_command_and_function(results_dir, capsys):

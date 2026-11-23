@@ -5,6 +5,6 @@ set -euo pipefail
 cd "$(dirname "$0")/.."
 python -m pip install -e ".[dev]"
 python -m pytest
-psoann sweep all --out results          # training + evaluation of every study (2200 runs)
+psoann sweep all --out results          # training + evaluation of every study (2320 runs)
 python scripts/make_outputs.py          # stats tables and figures
 echo "done: results/*.csv, results/stats/*.txt, results/figures/*.png"

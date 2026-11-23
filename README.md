@@ -23,7 +23,7 @@ psoann summarise results/sweep_informants.csv --by point --metric test_accuracy 
 psoann stats results/sweep_informants.csv --by point    # Kruskal-Wallis, Holm-corrected Mann-Whitney, A12
 ```
 
-The full study plan (Q0 to Q7, 71 settings x 30 runs, one command each) is in [docs/STUDIES.md](docs/STUDIES.md);
+The full study plan (Q0 to Q8, 75 settings x 30 runs, one command each) is in [docs/STUDIES.md](docs/STUDIES.md);
 `psoann sweep all` runs everything in a few minutes.
 
 ## Command reference
@@ -38,7 +38,7 @@ The full study plan (Q0 to Q7, 71 settings x 30 runs, one command each) is in [d
 | `psoann plot-box CSV --by point --y M --out FILE.png` | spread over the repeated runs, one box per setting |
 | `psoann plot-heatmap CSV --x COL --y COL --value M --out FILE.png` | mean of a metric over a two-factor grid |
 | `psoann plot-convergence HISTORIES.jsonl --out FILE.png` | best-so-far, mean, diversity or boundary-hit curves (`--key`) |
-| `psoann list` | registered activations, topologies, boundary handlers, metrics, sweeps |
+| `psoann list` | registered activations, topologies, boundary handlers, coefficient schedules, metrics, sweeps |
 | `python -m pytest` | the test suite (150+ tests, a few seconds) |
 
 ## What is implemented
@@ -52,7 +52,8 @@ The full study plan (Q0 to Q7, 71 settings x 30 runs, one command each) is in [d
 | Metrics: accuracy, precision, recall, F1, MSE, evaluations-to-target | `evaluation/`, `experiments/runner.py` |
 | Hyperparameter studies, 30 runs each, mean and standard deviation | `experiments/presets.py`, `docs/STUDIES.md` |
 | **Going further:** activation functions evolved inside the particle (one gene per hidden layer) | `ann/network.py` (`EvolvedActivationNetwork`) |
-| **Going further:** five boundary rules (clamp, reflect, wrap, random, none) with boundary-hit logging | `pso/bounds.py` |
+| **Going further:** six boundary rules (clamp, reject, reflect, wrap, random, none) with boundary-hit logging | `pso/bounds.py` |
+| **Going further:** time-varying coefficients (linearly decreasing inertia, TVAC) against fixed ones | `pso/schedules.py`, `psoann sweep schedule` |
 | **Going further:** informant strategies (global, random fixed, random regenerated, nearest-neighbour, ring) | `pso/informants.py` |
 | **Going further:** fitness-function comparison (error rate, MSE, cross-entropy) | `evaluation/metrics.py`, `psoann sweep fitness` |
 | **Going further:** statistics (Kruskal-Wallis, Holm, A12), equal-budget random-search control, convergence and diversity logging | `analysis/stats.py`, `pso/random_search.py`, `pso/optimizer.py` |
@@ -69,7 +70,8 @@ src/psoann/
   registry.py      tiny name -> implementation registry used by every extension point
   data/            CSV loader, stratified split / k-fold, train-only standardiser
   ann/             activations, flat-vector codec, feed-forward network
-  pso/             Algorithm 39 optimiser, informant topologies, boundary handling, random-search control
+  pso/             Algorithm 39 optimiser, informant topologies, boundary handling, coefficient schedules,
+                   random-search control
   evaluation/      fitness and reporting metrics (higher is better)
   training/        fitness wrapper + PSOTrainer: the only place ANN and PSO meet
   experiments/     runner (seeding), sweeps + built-in presets, CSV/JSONL result files

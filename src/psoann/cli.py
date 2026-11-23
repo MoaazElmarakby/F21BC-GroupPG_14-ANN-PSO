@@ -135,12 +135,17 @@ def _cmd_list(_: argparse.Namespace) -> int:
     from psoann.ann import available_activations
     from psoann.experiments import SWEEPS
     from psoann.evaluation import available_fitness_metrics
-    from psoann.pso import available_boundary_handlers, available_informant_strategies
+    from psoann.pso import (
+        available_boundary_handlers,
+        available_coefficient_schedules,
+        available_informant_strategies,
+    )
 
     for title, names in (
         ("activations", available_activations()),
         ("informant strategies", available_informant_strategies()),
         ("boundary handlers", available_boundary_handlers()),
+        ("coefficient schedules", available_coefficient_schedules()),
         ("fitness metrics", available_fitness_metrics()),
         ("sweeps", sorted(SWEEPS)),
     ):
@@ -210,7 +215,7 @@ def build_parser() -> argparse.ArgumentParser:
     heat.add_argument("--out", type=Path, required=True)
     heat.set_defaults(func=_cmd_plot_heatmap)
 
-    lst = sub.add_parser("list", help="show registered activations, topologies, boundary handlers, metrics and sweeps")
+    lst = sub.add_parser("list", help="show registered activations, topologies, boundary handlers, schedules, metrics and sweeps")
     lst.set_defaults(func=_cmd_list)
     return parser
 

@@ -31,11 +31,11 @@ def stats(study, metric, control=None):
     (T / f"{name}.txt").write_text(out)
     return out
 
-studies = ["random_search","architecture","swarm_vs_iterations","coefficients","informants","bounds","activations","fitness","pilot_bound","pilot_velocity"]
+studies = ["random_search","architecture","swarm_vs_iterations","coefficients","informants","bounds","activations","fitness","schedule","pilot_bound","pilot_velocity"]
 for s in studies:
     for m in ("test_accuracy", "test_f1"):
         stats(s, m)
-for s, c in (("architecture","1x8"),("informants","random-k3"),("bounds","bound_handling=clamp"),("activations","tanh"),("coefficients","b1-g2-d1"),("swarm_vs_iterations","b2000-s20")):
+for s, c in (("architecture","1x8"),("informants","random-k3"),("bounds","bound_handling=clamp"),("activations","tanh"),("coefficients","b1-g2-d1"),("swarm_vs_iterations","b2000-s20"),("schedule","schedule=constant")):
     stats(s, "test_accuracy", c)
 
 # ---- figures -------------------------------------------------------------------------------------------
@@ -80,6 +80,8 @@ for key in ("best", "diversity"):
 b = read_jsonl(R / "sweep_bounds.histories.jsonl")
 for key in ("best", "diversity", "boundary_hits"):
     plot_convergence(b, F / f"bounds_convergence_{key}.png", key=key)
+for key in ("best", "diversity"):
+    plot_convergence(read_jsonl(R / "sweep_schedule.histories.jsonl"), F / f"schedule_convergence_{key}.png", key=key)
 plot_convergence(subset("swarm_vs_iterations", {"b2000-s5","b2000-s20","b2000-s100"}), F / "budget_convergence_best.png")
 plot_convergence(subset("architecture", {"linear","1x8","3x16"}), F / "architecture_convergence_best.png")
 
