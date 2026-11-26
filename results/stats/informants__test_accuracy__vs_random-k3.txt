@@ -1,0 +1,18 @@
+Kruskal-Wallis on test_accuracy by point: H=126.269, p=1.14e-19 (16 groups, n=480)
+Mann-Whitney U, Holm-corrected (against control 'random-k3'); a12 = P(group_a beats group_b)
+  group_a     group_b  n_a  n_b  mean_a  mean_b     U         p    p_holm    a12     effect
+random-k3      global   30   30  0.9959  0.9971   400    0.4318         1 0.4444 negligible
+random-k3   random-k1   30   30  0.9959  0.9844   741 1.356e-05 0.0001898 0.8233      large
+random-k3   random-k2   30   30  0.9959  0.9924 590.5   0.03402    0.3154 0.6561     medium
+random-k3   random-k5   30   30  0.9959  0.9974 394.5    0.3866         1 0.4383      small
+random-k3  random-k10   30   30  0.9959  0.9987   340   0.07828     0.548 0.3778      small
+random-k3    regen-k1   30   30  0.9959  0.9881   709 0.0001028  0.001337 0.7878      large
+random-k3    regen-k2   30   30  0.9959  0.9909 624.5  0.008128   0.09754 0.6939     medium
+random-k3    regen-k3   30   30  0.9959  0.9925 597.5    0.0256    0.2816 0.6639     medium
+random-k3    regen-k5   30   30  0.9959  0.9924   572    0.0647    0.5176 0.6356      small
+random-k3   regen-k10   30   30  0.9959  0.9962   462    0.8577         1 0.5133 negligible
+random-k3  nearest-k1   30   30  0.9959   0.984 784.5 6.034e-07 9.051e-06 0.8717      large
+random-k3  nearest-k2   30   30  0.9959  0.9926   592   0.03154    0.3154 0.6578     medium
+random-k3  nearest-k3   30   30  0.9959  0.9957   501    0.4387         1 0.5567 negligible
+random-k3  nearest-k5   30   30  0.9959  0.9943 535.5    0.1944         1  0.595      small
+random-k3 nearest-k10   30   30  0.9959  0.9956 475.5    0.6992         1 0.5283 negligible

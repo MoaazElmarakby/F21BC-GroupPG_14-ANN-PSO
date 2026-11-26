@@ -1,0 +1,6 @@
+Kruskal-Wallis on test_f1 by point: H=2.114, p=0.3474 (3 groups, n=90)
+Mann-Whitney U, Holm-corrected (all pairs); a12 = P(group_a beats group_b)
+                group_a                 group_b  n_a  n_b  mean_a  mean_b   U      p  p_holm    a12     effect
+      schedule=constant schedule=linear_inertia   30   30  0.9954  0.9969 401 0.4423  0.8847 0.4456 negligible
+      schedule=constant           schedule=tvac   30   30  0.9954  0.9955 489 0.5556  0.8847 0.5433 negligible
+schedule=linear_inertia           schedule=tvac   30   30  0.9969  0.9955 546 0.1398  0.4195 0.6067      small

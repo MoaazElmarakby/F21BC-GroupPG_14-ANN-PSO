@@ -1,0 +1,16 @@
+combinations:
+hidden_activations
+relu-relu        5
+logistic-relu    5
+relu-logistic    4
+relu-tanh        4
+tanh-tanh        4
+tanh-logistic    3
+tanh-relu        3
+logistic-tanh    2
+
+per layer:
+          layer1  layer2
+relu          13      13
+tanh          10      10
+logistic       7       7

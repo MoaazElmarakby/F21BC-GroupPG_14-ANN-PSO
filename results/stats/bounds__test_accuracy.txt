@@ -1,0 +1,18 @@
+Kruskal-Wallis on test_accuracy by point: H=105.527, p=3.607e-21 (6 groups, n=180)
+Mann-Whitney U, Holm-corrected (all pairs); a12 = P(group_a beats group_b)
+               group_a                group_b  n_a  n_b  mean_a  mean_b     U         p    p_holm     a12     effect
+  bound_handling=clamp  bound_handling=reject   30   30  0.9959  0.9762   849 2.892e-09 3.181e-08  0.9433      large
+  bound_handling=clamp bound_handling=reflect   30   30  0.9959  0.9897   680 0.0005476  0.003286  0.7556      large
+  bound_handling=clamp    bound_handling=wrap   30   30  0.9959  0.9561 898.5 2.516e-11 3.773e-10  0.9983      large
+  bound_handling=clamp  bound_handling=random   30   30  0.9959  0.9928   574   0.05936    0.2375  0.6378      small
+  bound_handling=clamp    bound_handling=none   30   30  0.9959  0.9907   657  0.001901  0.009506    0.73      large
+ bound_handling=reject bound_handling=reflect   30   30  0.9762  0.9897   152 1.007e-05 7.052e-05  0.1689      large
+ bound_handling=reject    bound_handling=wrap   30   30  0.9762  0.9561   768 2.579e-06 2.321e-05  0.8533      large
+ bound_handling=reject  bound_handling=random   30   30  0.9762  0.9928  88.5 8.405e-08 8.405e-07 0.09833      large
+ bound_handling=reject    bound_handling=none   30   30  0.9762  0.9907 133.5 2.819e-06 2.321e-05  0.1483      large
+bound_handling=reflect    bound_handling=wrap   30   30  0.9897  0.9561   885 1.223e-10  1.59e-09  0.9833      large
+bound_handling=reflect  bound_handling=random   30   30  0.9897  0.9928 342.5    0.1101    0.3303  0.3806      small
+bound_handling=reflect    bound_handling=none   30   30  0.9897  0.9907 412.5    0.5816    0.5816  0.4583 negligible
+   bound_handling=wrap  bound_handling=random   30   30  0.9561  0.9928    10 7.209e-11 1.009e-09 0.01111      large
+   bound_handling=wrap    bound_handling=none   30   30  0.9561  0.9907    17 1.501e-10 1.801e-09 0.01889      large
+ bound_handling=random    bound_handling=none   30   30  0.9928  0.9907   523    0.2791    0.5581  0.5811      small

@@ -1,0 +1,13 @@
+Kruskal-Wallis on test_accuracy by point: H=9.133, p=0.05786 (5 groups, n=50)
+Mann-Whitney U, Holm-corrected (all pairs); a12 = P(group_a beats group_b)
+  group_a   group_b  n_a  n_b  mean_a  mean_b    U       p  p_holm   a12     effect
+bound=0.5 bound=1.0   10   10  0.9896  0.9961 21.5 0.03129  0.3129 0.215      large
+bound=0.5 bound=2.0   10   10  0.9896  0.9961   22 0.03507  0.3157  0.22      large
+bound=0.5 bound=4.0   10   10  0.9896  0.9956   23 0.04338  0.3471  0.23      large
+bound=0.5 bound=8.0   10   10  0.9896  0.9937   32  0.1822  0.9111  0.32     medium
+bound=1.0 bound=2.0   10   10  0.9961  0.9961 54.5  0.7492       1 0.545 negligible
+bound=1.0 bound=4.0   10   10  0.9961  0.9956   59  0.5042       1  0.59      small
+bound=1.0 bound=8.0   10   10  0.9961  0.9937   71  0.1133  0.7825  0.71     medium
+bound=2.0 bound=4.0   10   10  0.9961  0.9956   58  0.5577       1  0.58      small
+bound=2.0 bound=8.0   10   10  0.9961  0.9937   71  0.1118  0.7825  0.71     medium
+bound=4.0 bound=8.0   10   10  0.9956  0.9937   61  0.4194       1  0.61      small

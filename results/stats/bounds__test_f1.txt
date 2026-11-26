@@ -1,0 +1,18 @@
+Kruskal-Wallis on test_f1 by point: H=105.545, p=3.576e-21 (6 groups, n=180)
+Mann-Whitney U, Holm-corrected (all pairs); a12 = P(group_a beats group_b)
+               group_a                group_b  n_a  n_b  mean_a  mean_b     U         p    p_holm     a12     effect
+  bound_handling=clamp  bound_handling=reject   30   30  0.9954  0.9734 853.5 1.999e-09 2.198e-08  0.9483      large
+  bound_handling=clamp bound_handling=reflect   30   30  0.9954  0.9885   682 0.0005155  0.003093  0.7578      large
+  bound_handling=clamp    bound_handling=wrap   30   30  0.9954  0.9508   899 2.486e-11  3.73e-10  0.9989      large
+  bound_handling=clamp  bound_handling=random   30   30  0.9954  0.9919 574.5   0.05894    0.2358  0.6383      small
+  bound_handling=clamp    bound_handling=none   30   30  0.9954  0.9895   661  0.001611  0.008053  0.7344      large
+ bound_handling=reject bound_handling=reflect   30   30  0.9734  0.9885 148.5 8.501e-06 5.951e-05   0.165      large
+ bound_handling=reject    bound_handling=wrap   30   30  0.9734  0.9508   764 3.564e-06 3.208e-05  0.8489      large
+ bound_handling=reject  bound_handling=random   30   30  0.9734  0.9919    87 7.875e-08 7.875e-07 0.09667      large
+ bound_handling=reject    bound_handling=none   30   30  0.9734  0.9895 136.5 3.638e-06 3.208e-05  0.1517      large
+bound_handling=reflect    bound_handling=wrap   30   30  0.9885  0.9508 884.5 1.379e-10 1.792e-09  0.9828      large
+bound_handling=reflect  bound_handling=random   30   30  0.9885  0.9919 344.5    0.1185    0.3554  0.3828      small
+bound_handling=reflect    bound_handling=none   30   30  0.9885  0.9895 418.5     0.646     0.646   0.465 negligible
+   bound_handling=wrap  bound_handling=random   30   30  0.9508  0.9919    11 8.329e-11 1.166e-09 0.01222      large
+   bound_handling=wrap    bound_handling=none   30   30  0.9508  0.9895    18 1.743e-10 2.092e-09    0.02      large
+ bound_handling=random    bound_handling=none   30   30  0.9919  0.9895 530.5    0.2343    0.4685  0.5894      small

@@ -1,0 +1,8 @@
+Kruskal-Wallis on test_accuracy by point: H=105.527, p=3.607e-21 (6 groups, n=180)
+Mann-Whitney U, Holm-corrected (against control 'bound_handling=clamp'); a12 = P(group_a beats group_b)
+             group_a                group_b  n_a  n_b  mean_a  mean_b     U         p    p_holm    a12 effect
+bound_handling=clamp  bound_handling=reject   30   30  0.9959  0.9762   849 2.892e-09 1.157e-08 0.9433  large
+bound_handling=clamp bound_handling=reflect   30   30  0.9959  0.9897   680 0.0005476  0.001643 0.7556  large
+bound_handling=clamp    bound_handling=wrap   30   30  0.9959  0.9561 898.5 2.516e-11 1.258e-10 0.9983  large
+bound_handling=clamp  bound_handling=random   30   30  0.9959  0.9928   574   0.05936   0.05936 0.6378  small
+bound_handling=clamp    bound_handling=none   30   30  0.9959  0.9907   657  0.001901  0.003803   0.73  large

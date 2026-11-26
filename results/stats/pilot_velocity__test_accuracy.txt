@@ -1,0 +1,4 @@
+Kruskal-Wallis on test_accuracy by point: H=0.000, p=1 (2 groups, n=20)
+Mann-Whitney U, Holm-corrected (all pairs); a12 = P(group_a beats group_b)
+                   group_a               group_b  n_a  n_b  mean_a  mean_b  U  p  p_holm  a12     effect
+initial_velocity=half_diff initial_velocity=zero   10   10  0.9961  0.9959 50  1       1  0.5 negligible

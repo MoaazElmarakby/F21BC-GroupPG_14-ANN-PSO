@@ -1,0 +1,123 @@
+Kruskal-Wallis on test_accuracy by point: H=126.269, p=1.14e-19 (16 groups, n=480)
+Mann-Whitney U, Holm-corrected (all pairs); a12 = P(group_a beats group_b)
+   group_a     group_b  n_a  n_b  mean_a  mean_b     U         p    p_holm     a12     effect
+    global   random-k1   30   30  0.9971  0.9844 774.5   1.1e-06 0.0001199  0.8606      large
+    global   random-k2   30   30  0.9971  0.9924 645.5  0.002952    0.2332  0.7172      large
+    global   random-k3   30   30  0.9971  0.9959   500    0.4318         1  0.5556 negligible
+    global   random-k5   30   30  0.9971  0.9974 447.5    0.9745         1  0.4972 negligible
+    global  random-k10   30   30  0.9971  0.9987   390    0.3295         1  0.4333      small
+    global    regen-k1   30   30  0.9971  0.9881 757.5 3.601e-06 0.0003889  0.8417      large
+    global    regen-k2   30   30  0.9971  0.9909 672.5 0.0006685   0.05816  0.7472      large
+    global    regen-k3   30   30  0.9971  0.9925 651.5  0.002107    0.1706  0.7239      large
+    global    regen-k5   30   30  0.9971  0.9924   624  0.007848    0.5494  0.6933     medium
+    global   regen-k10   30   30  0.9971  0.9962 516.5    0.2975         1  0.5739      small
+    global  nearest-k1   30   30  0.9971   0.984 822.5 2.447e-08 2.864e-06  0.9139      large
+    global  nearest-k2   30   30  0.9971  0.9926   648  0.002506    0.2004    0.72      large
+    global  nearest-k3   30   30  0.9971  0.9957   561   0.08715         1  0.6233      small
+    global  nearest-k5   30   30  0.9971  0.9943   593    0.0282         1  0.6589     medium
+    global nearest-k10   30   30  0.9971  0.9956 528.5    0.2226         1  0.5872      small
+ random-k1   random-k2   30   30  0.9844  0.9924   260  0.004775    0.3486  0.2889      large
+ random-k1   random-k3   30   30  0.9844  0.9959   159 1.356e-05  0.001424  0.1767      large
+ random-k1   random-k5   30   30  0.9844  0.9974 112.5 4.093e-07 4.625e-05   0.125      large
+ random-k1  random-k10   30   30  0.9844  0.9987  72.5 1.159e-08 1.368e-06 0.08056      large
+ random-k1    regen-k1   30   30  0.9844  0.9881 375.5    0.2716         1  0.4172      small
+ random-k1    regen-k2   30   30  0.9844  0.9909 296.5   0.02296         1  0.3294     medium
+ random-k1    regen-k3   30   30  0.9844  0.9925   261  0.005069     0.365    0.29      large
+ random-k1    regen-k5   30   30  0.9844  0.9924   252  0.003284    0.2561    0.28      large
+ random-k1   regen-k10   30   30  0.9844  0.9962   155 1.057e-05   0.00112  0.1722      large
+ random-k1  nearest-k1   30   30  0.9844   0.984   453    0.9704         1  0.5033 negligible
+ random-k1  nearest-k2   30   30  0.9844  0.9926   256  0.003999    0.2999  0.2844      large
+ random-k1  nearest-k3   30   30  0.9844  0.9957 169.5 2.963e-05  0.003052  0.1883      large
+ random-k1  nearest-k5   30   30  0.9844  0.9943   205 0.0002695   0.02426  0.2278      large
+ random-k1 nearest-k10   30   30  0.9844  0.9956 166.5  2.36e-05  0.002455   0.185      large
+ random-k2   random-k3   30   30  0.9924  0.9959 309.5   0.03402         1  0.3439     medium
+ random-k2   random-k5   30   30  0.9924  0.9974 239.5  0.001315    0.1092  0.2661      large
+ random-k2  random-k10   30   30  0.9924  0.9987   182 3.472e-05  0.003507  0.2022      large
+ random-k2    regen-k1   30   30  0.9924  0.9881 603.5   0.02266         1  0.6706     medium
+ random-k2    regen-k2   30   30  0.9924  0.9909   516    0.3281         1  0.5733      small
+ random-k2    regen-k3   30   30  0.9924  0.9925   469     0.782         1  0.5211 negligible
+ random-k2    regen-k5   30   30  0.9924  0.9924 443.5    0.9283         1  0.4928 negligible
+ random-k2   regen-k10   30   30  0.9924  0.9962 321.5   0.05315         1  0.3572     medium
+ random-k2  nearest-k1   30   30  0.9924   0.984   700 0.0002097   0.01929  0.7778      large
+ random-k2  nearest-k2   30   30  0.9924  0.9926   460    0.8869         1  0.5111 negligible
+ random-k2  nearest-k3   30   30  0.9924  0.9957 352.5     0.143         1  0.3917      small
+ random-k2  nearest-k5   30   30  0.9924  0.9943 395.5    0.4166         1  0.4394      small
+ random-k2 nearest-k10   30   30  0.9924  0.9956 329.5   0.06895         1  0.3661      small
+ random-k3   random-k5   30   30  0.9959  0.9974 394.5    0.3866         1  0.4383      small
+ random-k3  random-k10   30   30  0.9959  0.9987   340   0.07828         1  0.3778      small
+ random-k3    regen-k1   30   30  0.9959  0.9881   709 0.0001028  0.009914  0.7878      large
+ random-k3    regen-k2   30   30  0.9959  0.9909 624.5  0.008128    0.5608  0.6939     medium
+ random-k3    regen-k3   30   30  0.9959  0.9925 597.5    0.0256         1  0.6639     medium
+ random-k3    regen-k5   30   30  0.9959  0.9924   572    0.0647         1  0.6356      small
+ random-k3   regen-k10   30   30  0.9959  0.9962   462    0.8577         1  0.5133 negligible
+ random-k3  nearest-k1   30   30  0.9959   0.984 784.5 6.034e-07 6.698e-05  0.8717      large
+ random-k3  nearest-k2   30   30  0.9959  0.9926   592   0.03154         1  0.6578     medium
+ random-k3  nearest-k3   30   30  0.9959  0.9957   501    0.4387         1  0.5567 negligible
+ random-k3  nearest-k5   30   30  0.9959  0.9943 535.5    0.1944         1   0.595      small
+ random-k3 nearest-k10   30   30  0.9959  0.9956 475.5    0.6992         1  0.5283 negligible
+ random-k5  random-k10   30   30  0.9974  0.9987 382.5    0.2737         1   0.425      small
+ random-k5    regen-k1   30   30  0.9974  0.9881 776.5 9.341e-07 0.0001028  0.8628      large
+ random-k5    regen-k2   30   30  0.9974  0.9909   681 0.0004486   0.03993  0.7567      large
+ random-k5    regen-k3   30   30  0.9974  0.9925 667.5 0.0009469   0.08049  0.7417      large
+ random-k5    regen-k5   30   30  0.9974  0.9924   638  0.004112    0.3043  0.7089     medium
+ random-k5   regen-k10   30   30  0.9974  0.9962   525    0.2434         1  0.5833      small
+ random-k5  nearest-k1   30   30  0.9974   0.984   832 1.124e-08 1.338e-06  0.9244      large
+ random-k5  nearest-k2   30   30  0.9974  0.9926   667 0.0009695   0.08144  0.7411      large
+ random-k5  nearest-k3   30   30  0.9974  0.9957   575   0.05405         1  0.6389      small
+ random-k5  nearest-k5   30   30  0.9974  0.9943 606.5   0.01639         1  0.6739     medium
+ random-k5 nearest-k10   30   30  0.9974  0.9956 531.5    0.2055         1  0.5906      small
+random-k10    regen-k1   30   30  0.9987  0.9881   817 2.823e-08 3.275e-06  0.9078      large
+random-k10    regen-k2   30   30  0.9987  0.9909   720 3.267e-05  0.003332     0.8      large
+random-k10    regen-k3   30   30  0.9987  0.9925 716.5 4.181e-05  0.004181  0.7961      large
+random-k10    regen-k5   30   30  0.9987  0.9924 694.5 0.0001577   0.01483  0.7717      large
+random-k10   regen-k10   30   30  0.9987  0.9962 580.5   0.03797         1   0.645     medium
+random-k10  nearest-k1   30   30  0.9987   0.984   866 3.898e-10 4.678e-08  0.9622      large
+random-k10  nearest-k2   30   30  0.9987  0.9926 715.5 4.441e-05  0.004397   0.795      large
+random-k10  nearest-k3   30   30  0.9987  0.9957   637  0.003388    0.2609  0.7078     medium
+random-k10  nearest-k5   30   30  0.9987  0.9943   666 0.0007793   0.06702    0.74      large
+random-k10 nearest-k10   30   30  0.9987  0.9956   592   0.02417         1  0.6578     medium
+  regen-k1    regen-k2   30   30  0.9881  0.9909 377.5    0.2829         1  0.4194      small
+  regen-k1    regen-k3   30   30  0.9881  0.9925 312.5   0.04112         1  0.3472     medium
+  regen-k1    regen-k5   30   30  0.9881  0.9924   308   0.03475         1  0.3422     medium
+  regen-k1   regen-k10   30   30  0.9881  0.9962 185.5 7.426e-05  0.007277  0.2061      large
+  regen-k1  nearest-k1   30   30  0.9881   0.984   571   0.07333         1  0.6344      small
+  regen-k1  nearest-k2   30   30  0.9881  0.9926   299   0.02477         1  0.3322     medium
+  regen-k1  nearest-k3   30   30  0.9881  0.9957 201.5 0.0002106   0.01929  0.2239      large
+  regen-k1  nearest-k5   30   30  0.9881  0.9943   240  0.001771    0.1452  0.2667      large
+  regen-k1 nearest-k10   30   30  0.9881  0.9956   196  0.000151   0.01435  0.2178      large
+  regen-k2    regen-k3   30   30  0.9909  0.9925 390.5    0.3773         1  0.4339      small
+  regen-k2    regen-k5   30   30  0.9909  0.9924 396.5    0.4275         1  0.4406 negligible
+  regen-k2   regen-k10   30   30  0.9909  0.9962   269  0.006186    0.4392  0.2989     medium
+  regen-k2  nearest-k1   30   30  0.9909   0.984   645  0.003808    0.2894  0.7167      large
+  regen-k2  nearest-k2   30   30  0.9909  0.9926 376.5    0.2744         1  0.4183      small
+  regen-k2  nearest-k3   30   30  0.9909  0.9957   292   0.01796         1  0.3244     medium
+  regen-k2  nearest-k5   30   30  0.9909  0.9943   329   0.07089         1  0.3656      small
+  regen-k2 nearest-k10   30   30  0.9909  0.9956 286.5   0.01399    0.9512  0.3183     medium
+  regen-k3    regen-k5   30   30  0.9925  0.9924   431    0.7817         1  0.4789 negligible
+  regen-k3   regen-k10   30   30  0.9925  0.9962 307.5   0.03136         1  0.3417     medium
+  regen-k3  nearest-k1   30   30  0.9925   0.984   701 0.0001976   0.01837  0.7789      large
+  regen-k3  nearest-k2   30   30  0.9925  0.9926   436    0.8397         1  0.4844 negligible
+  regen-k3  nearest-k3   30   30  0.9925  0.9957 332.5    0.0785         1  0.3694      small
+  regen-k3  nearest-k5   30   30  0.9925  0.9943 377.5    0.2797         1  0.4194      small
+  regen-k3 nearest-k10   30   30  0.9925  0.9956   319   0.04899         1  0.3544     medium
+  regen-k5   regen-k10   30   30  0.9924  0.9962 331.5   0.07339         1  0.3683      small
+  regen-k5  nearest-k1   30   30  0.9924   0.984   681 0.0006071   0.05343  0.7567      large
+  regen-k5  nearest-k2   30   30  0.9924  0.9926 464.5    0.8339         1  0.5161 negligible
+  regen-k5  nearest-k3   30   30  0.9924  0.9957 363.5    0.1945         1  0.4039      small
+  regen-k5  nearest-k5   30   30  0.9924  0.9943 398.5    0.4429         1  0.4428 negligible
+  regen-k5 nearest-k10   30   30  0.9924  0.9956 336.5   0.08722         1  0.3739      small
+ regen-k10  nearest-k1   30   30  0.9962   0.984   803 1.424e-07 1.638e-05  0.8922      large
+ regen-k10  nearest-k2   30   30  0.9962  0.9926   583   0.04449         1  0.6478     medium
+ regen-k10  nearest-k3   30   30  0.9962  0.9957   488    0.5665         1  0.5422 negligible
+ regen-k10  nearest-k5   30   30  0.9962  0.9943   525    0.2564         1  0.5833      small
+ regen-k10 nearest-k10   30   30  0.9962  0.9956   461    0.8716         1  0.5122 negligible
+nearest-k1  nearest-k2   30   30   0.984  0.9926   188 0.0001022  0.009914  0.2089      large
+nearest-k1  nearest-k3   30   30   0.984  0.9957 108.5 3.882e-07 4.425e-05  0.1206      large
+nearest-k1  nearest-k5   30   30   0.984  0.9943   147  6.83e-06 0.0007308  0.1633      large
+nearest-k1 nearest-k10   30   30   0.984  0.9956 111.5 4.712e-07 5.277e-05  0.1239      large
+nearest-k2  nearest-k3   30   30  0.9926  0.9957   341    0.1025         1  0.3789      small
+nearest-k2  nearest-k5   30   30  0.9926  0.9943   387    0.3479         1    0.43      small
+nearest-k2 nearest-k10   30   30  0.9926  0.9956 328.5   0.06781         1   0.365      small
+nearest-k3  nearest-k5   30   30  0.9957  0.9943 490.5     0.545         1   0.545 negligible
+nearest-k3 nearest-k10   30   30  0.9957  0.9956   419    0.6414         1  0.4656 negligible
+nearest-k5 nearest-k10   30   30  0.9943  0.9956   381    0.2977         1  0.4233      small

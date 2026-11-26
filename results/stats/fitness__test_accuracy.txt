@@ -1,0 +1,6 @@
+Kruskal-Wallis on test_accuracy by point: H=5.867, p=0.0532 (3 groups, n=90)
+Mann-Whitney U, Holm-corrected (all pairs); a12 = P(group_a beats group_b)
+         group_a                   group_b  n_a  n_b  mean_a  mean_b     U       p  p_holm    a12 effect
+fitness=accuracy           fitness=neg_mse   30   30  0.9959  0.9975   384  0.2914  0.3391 0.4267  small
+fitness=accuracy fitness=neg_cross_entropy   30   30  0.9959  0.9939   540  0.1695  0.3391    0.6  small
+ fitness=neg_mse fitness=neg_cross_entropy   30   30  0.9975  0.9939 602.5 0.01736 0.05207 0.6694 medium

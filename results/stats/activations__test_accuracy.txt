@@ -1,0 +1,13 @@
+Kruskal-Wallis on test_accuracy by point: H=9.710, p=0.0456 (5 groups, n=150)
+Mann-Whitney U, Holm-corrected (all pairs); a12 = P(group_a beats group_b)
+   group_a    group_b  n_a  n_b  mean_a  mean_b     U        p  p_holm    a12     effect
+  logistic       tanh   30   30  0.9845   0.993 264.5 0.005872 0.05872 0.2939     medium
+  logistic       relu   30   30  0.9845  0.9922   287  0.01553  0.1398 0.3189     medium
+  logistic leaky_relu   30   30  0.9845  0.9905   310  0.03791  0.3033 0.3444     medium
+  logistic    evolved   30   30  0.9845  0.9896 336.5  0.09311  0.6518 0.3739      small
+      tanh       relu   30   30   0.993  0.9922   496   0.4959       1 0.5511 negligible
+      tanh leaky_relu   30   30   0.993  0.9905 495.5      0.5       1 0.5506 negligible
+      tanh    evolved   30   30   0.993  0.9896   535   0.2066       1 0.5944      small
+      relu leaky_relu   30   30  0.9922  0.9905 462.5   0.8576       1 0.5139 negligible
+      relu    evolved   30   30  0.9922  0.9896 497.5   0.4833       1 0.5528 negligible
+leaky_relu    evolved   30   30  0.9905  0.9896 483.5   0.6221       1 0.5372 negligible
