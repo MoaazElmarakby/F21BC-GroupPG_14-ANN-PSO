@@ -17,7 +17,7 @@ the following protocol:
 | Q3 | `coefficients` | 15 | What balance of personal-best, informant-best and global-best weights works best? All whole-number triples that sum to 4. |
 | Q4 | `informants` | 16 | Do the number and the choice of informants matter? Global, random (fixed and regenerated) and nearest-neighbour informants with k = 1, 2, 3, 5, 10. |
 | Q5 | `bounds` | 6 | Does the boundary rule matter? clamp, reject, reflect, wrap, random re-initialisation, none. |
-| Q6 | `activations` | 5 | Fixed or evolved activation functions? Two hidden layers of 8 with logistic, tanh, ReLU, leaky ReLU, or one evolved gene per layer. |
+| Q6 | `activations` | 5 | Fixed or evolved activation functions? Two hidden layers of 8 with one fixed activation (logistic, tanh, ReLU or leaky ReLU) in every hidden layer, or one evolved gene per hidden layer that chooses among logistic, tanh and ReLU (`ann.activation_choices`; leaky ReLU is evaluated only as a fixed activation). |
 | Q7 | `fitness` | 3 | Does the fitness function matter? Error rate (accuracy), MSE, cross-entropy. |
 | Q8 | `schedule` | 3 | Do time-varying coefficients (linearly decreasing inertia, TVAC) beat fixed ones? |
 | pilots | `pilot_bound`, `pilot_velocity` | 5, 2 | Hidden hyperparameters (weight bound, initial velocity), chosen on training accuracy only. |

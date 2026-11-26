@@ -66,7 +66,7 @@ for the studies and the output files.
 
 | Area | Features | Module |
 |---|---|---|
-| ANN | configurable layers, widths and per-layer activations (logistic, tanh, ReLU, leaky ReLU, Gaussian, identity); activation functions evolved inside the particle | `ann/` |
+| ANN | configurable layers, widths and per-layer activations (logistic, tanh, ReLU, leaky ReLU, Gaussian, identity); activation functions evolved inside the particle (a choice among logistic, tanh and ReLU for each hidden layer) | `ann/` |
 | PSO | Algorithm 39 with informants; informant strategies (global, random fixed or regenerated, nearest neighbour, ring); six boundary rules (clamp, reject, reflect, wrap, random, none); coefficient schedules (constant, linearly decreasing inertia, TVAC); equal-budget random-search control | `pso/` |
 | Coupling | a particle is the whole network as one flat vector; the fitness is the training accuracy (or MSE, cross-entropy) | `training/` |
 | Data | stratified 70/30 split, standardisation with training statistics only | `data/` |
