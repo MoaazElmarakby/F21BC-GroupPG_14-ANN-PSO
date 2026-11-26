@@ -3,14 +3,14 @@ import pytest
 from psoann.config import ANNConfig, DataConfig, ExperimentConfig, PSOConfig
 
 
-def test_defaults_match_the_design_doc():
+def test_defaults_are_the_documented_ones():
     cfg = ExperimentConfig()
-    assert (cfg.pso.alpha, cfg.pso.beta, cfg.pso.gamma, cfg.pso.delta) == (0.7298, 1.4962, 1.4962, 0.0)  # D3
-    assert cfg.pso.n_informants == 3 and cfg.pso.informants == "random"  # D4
-    assert cfg.pso.bound == 2.0 and cfg.pso.bound_handling == "clamp"  # D5
-    assert cfg.data.standardise and cfg.data.split_policy == "fixed"  # D6, section 3
-    assert cfg.ann.hidden_layers == (8,) and cfg.ann.hidden_activation == "tanh"  # D7
-    assert cfg.training.fitness == "accuracy"  # D2
+    assert (cfg.pso.alpha, cfg.pso.beta, cfg.pso.gamma, cfg.pso.delta) == (0.7298, 1.4962, 1.4962, 0.0)
+    assert cfg.pso.n_informants == 3 and cfg.pso.informants == "random"
+    assert cfg.pso.bound == 2.0 and cfg.pso.bound_handling == "clamp"
+    assert cfg.data.standardise and cfg.data.split_policy == "fixed"
+    assert cfg.ann.hidden_layers == (8,) and cfg.ann.hidden_activation == "tanh"
+    assert cfg.training.fitness == "accuracy"
 
 
 def test_budget_is_swarm_times_iterations():

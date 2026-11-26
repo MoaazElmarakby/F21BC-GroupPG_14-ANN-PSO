@@ -10,7 +10,7 @@ Two variants share one ``forward``:
 
 from __future__ import annotations
 
-from typing import Callable, Sequence
+from collections.abc import Callable, Sequence
 
 import numpy as np
 from numpy.typing import NDArray
@@ -50,7 +50,7 @@ class FeedForwardNetwork:
         return np.full(self.n_parameters, -weight_bound), np.full(self.n_parameters, weight_bound)
 
     def describe_activations(self, params: NDArray[np.float64]) -> str:
-        """Hidden-layer activation names for this parameter vector, e.g. ``"tanh-relu"`` (``"none"`` if no hidden layer)."""
+        """Hidden-layer activation names for this vector, e.g. ``"tanh-relu"`` (``"none"`` without hidden layers)."""
         hidden = self.activation_names[:-1]
         return "-".join(hidden) if hidden else "none"
 
@@ -63,7 +63,7 @@ class FeedForwardNetwork:
         if a.ndim != 2 or a.shape[1] != self.layer_sizes[0]:
             raise ValueError(f"expected X of shape (n, {self.layer_sizes[0]}), got {a.shape}")
         weights, activations = self._split(np.asarray(params, dtype=np.float64))
-        for layer, activation in zip(self.codec.decode(weights), activations):
+        for layer, activation in zip(self.codec.decode(weights), activations, strict=True):
             a = activation(a @ layer.weights + layer.biases)
         return a
 
@@ -99,7 +99,9 @@ class EvolvedActivationNetwork(FeedForwardNetwork):
 
     def bounds(self, weight_bound: float) -> tuple[NDArray[np.float64], NDArray[np.float64]]:
         lower = np.concatenate([np.full(self.n_weights, -weight_bound), np.zeros(self.n_hidden)])
-        upper = np.concatenate([np.full(self.n_weights, weight_bound), np.full(self.n_hidden, float(len(self.choice_names)))])
+        upper = np.concatenate(
+            [np.full(self.n_weights, weight_bound), np.full(self.n_hidden, float(len(self.choice_names)))]
+        )
         return lower, upper
 
     def activation_indices(self, params: NDArray[np.float64]) -> NDArray[np.int64]:
@@ -114,7 +116,7 @@ class EvolvedActivationNetwork(FeedForwardNetwork):
         if params.shape != (self.n_parameters,):
             raise ValueError(f"expected a vector of length {self.n_parameters}, got shape {params.shape}")
         hidden = tuple(self.choice_functions[i] for i in self.activation_indices(params))
-        return params[: self.n_weights], hidden + (self.activations[-1],)
+        return params[: self.n_weights], (*hidden, self.activations[-1])
 
 
 def build_network(config: ANNConfig, n_inputs: int) -> FeedForwardNetwork:

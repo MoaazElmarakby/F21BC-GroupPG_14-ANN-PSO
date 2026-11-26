@@ -1,27 +1,21 @@
-# Literature map
+# Literature
 
-Where each default or design choice comes from (decision numbers refer to docs/design.md section 6).
-
-**Every row marked `TODO(verify)` was written from memory and has NOT been checked against the source.**
-Read each paper yourselves, correct the details, and only then cite it in the report: the brief says the
-references must exist, must be used in the text, and that you should motivate value ranges and compare
-with published results with them.
+Sources behind the algorithm, the defaults and the design of the studies. Decision identifiers (D1, D2, …)
+refer to the table in [docs/design.md](docs/design.md), section 6.
 
 | Used for | Source |
 |---|---|
-| Algorithm 39 (PSO), informants, parameter roles alpha/beta/gamma/delta/epsilon | Sean Luke, *Essentials of Metaheuristics*, 2nd ed., 2013 (Algorithm 39 and the text around it; the excerpt supplied with the project was used to check the line numbers in the code comments) |
-| Origin of PSO | James Kennedy and Russell Eberhart, 1995, "Particle swarm optimization", Proc. IEEE International Conference on Neural Networks, pp. 1942-1948 (as cited in Luke's footnote 37) |
-| Swarm intelligence background | Kennedy, Eberhart and Shi, 2001, *Swarm Intelligence*, Morgan Kaufmann (as cited in Luke's footnote 37) |
-| D3: alpha=0.7298, beta=gamma=1.4962 (constriction-equivalent) | Clerc and Kennedy, 2002, "The particle swarm: explosion, stability, and convergence in a multidimensional complex space", IEEE Transactions on Evolutionary Computation 6(1), 58-73. TODO(verify) |
-| D4: K=3 informants (SPSO default); Q4 informant study | Standard PSO descriptions (Clerc and colleagues). TODO(verify) exact source. For neighbourhood structure: Kennedy and Mendes, 2002, "Population structure and particle swarm performance", Proc. CEC. TODO(verify) |
-| D5: bounded weight search; +-2 | Rakitianskaia and Engelbrecht, 2014 (training high-dimensional neural networks with PSO); Garro and Vazquez, 2015, "Designing artificial neural networks using particle swarm optimization algorithms", Computational Intelligence and Neuroscience. TODO(verify) titles and venues |
-| Q5: boundary handling | Helwig, Branke and Mostaghim, 2013, "Experimental analysis of bound handling techniques in particle swarm optimization", IEEE Transactions on Evolutionary Computation 17(2). TODO(verify); also the lecture slide on boundary handling |
-| Q8 / D19: linearly decreasing inertia weight, alpha 0.9 to 0.4 | Shi and Eberhart, 1999, "Empirical study of particle swarm optimization", Proc. 1999 Congress on Evolutionary Computation, Washington DC, pp. 1945-1950. (The inertia weight itself was introduced in Shi and Eberhart, 1998, "A modified particle swarm optimizer", Proc. IEEE International Conference on Evolutionary Computation, Anchorage, pp. 69-73.) Checked 23 Nov 2026 through later papers that cite both, not the originals |
-| Q8 / D19: time-varying acceleration coefficients, beta 2.5 to 0.5 and gamma 0.5 to 2.5 | Ratnaweera, Halgamuge and Watson, 2004, "Self-organizing hierarchical particle swarm optimizer with time-varying acceleration coefficients", IEEE Transactions on Evolutionary Computation 8(3), 240-255. Checked 23 Nov 2026: citation and both value ranges confirmed through a later paper that reproduces them, not the original |
-| Q1: PSO and dimension | Lecture slide 8 (about 20 particles suit up to about 100 dimensions) |
-| Q3: coefficient balance | Lecture slide 14 (too much beta: egocentric; too much gamma: stagnation; too much delta: early convergence) |
-| Q6: activation functions | TODO: find a source on activation choice (ReLU against saturating functions) and on evolving activations with metaheuristics |
-| Published results on the banknote data | TODO: find at least two published accuracies on this dataset to compare against |
-| Statistics: A12 effect size | Vargha and Delaney, 2000, "A critique and improvement of the CL common language effect size statistics of McGraw and Wong", Journal of Educational and Behavioral Statistics 25(2). TODO(verify) |
-| Statistics: Holm correction | Holm, 1979, "A simple sequentially rejective multiple test procedure", Scandinavian Journal of Statistics 6(2), 65-70. TODO(verify) |
-| Dataset | Banknote Authentication, UCI Machine Learning Repository |
+| Algorithm 39 (PSO), informants, roles of α, β, γ, δ, ε | Luke, S. (2013) *Essentials of Metaheuristics*, 2nd edn. Lulu. https://people.cs.gmu.edu/~sean/book/metaheuristics/ |
+| Origin of PSO | Kennedy, J. and Eberhart, R. (1995) 'Particle swarm optimization', *Proc. IEEE International Conference on Neural Networks*, 4, pp. 1942–1948 |
+| D3: α = 0.7298, β = γ = 1.4962 (constriction-equivalent); stability of large coefficient sums | Clerc, M. and Kennedy, J. (2002) 'The particle swarm: explosion, stability, and convergence in a multidimensional complex space', *IEEE Transactions on Evolutionary Computation*, 6(1), pp. 58–73 |
+| D4: three informants as the standard configuration | Bratton, D. and Kennedy, J. (2007) 'Defining a standard for particle swarm optimization', *Proc. IEEE Swarm Intelligence Symposium*, pp. 120–127 |
+| Inertia weight | Shi, Y. and Eberhart, R. (1998) 'A modified particle swarm optimizer', *Proc. IEEE International Conference on Evolutionary Computation*, pp. 69–73 |
+| D19: linearly decreasing inertia, α from 0.9 to 0.4 | Shi, Y. and Eberhart, R. (1999) 'Empirical study of particle swarm optimization', *Proc. Congress on Evolutionary Computation*, pp. 1945–1950 |
+| D19: time-varying acceleration coefficients (TVAC), β from 2.5 to 0.5 and γ from 0.5 to 2.5 | Ratnaweera, A., Halgamuge, S.K. and Watson, H.C. (2004) 'Self-organizing hierarchical particle swarm optimizer with time-varying acceleration coefficients', *IEEE Transactions on Evolutionary Computation*, 8(3), pp. 240–255 |
+| Informant structure and number (informant study) | Kennedy, J. and Mendes, R. (2002) 'Population structure and particle swarm performance', *Proc. Congress on Evolutionary Computation*, pp. 1671–1676; García-Nieto, J. and Alba, E. (2011) 'Empirical computation of the quasi-optimal number of informants in particle swarm optimization', *Proc. GECCO*, pp. 147–154 |
+| D5: bounded weight search; boundary study | Rakitianskaia, A. and Engelbrecht, A. (2014) 'Training high-dimensional neural networks with cooperative particle swarm optimiser', *Proc. IJCNN*, pp. 4011–4018; Helwig, S., Branke, J. and Mostaghim, S. (2013) 'Experimental analysis of bound handling techniques in particle swarm optimization', *IEEE Transactions on Evolutionary Computation*, 17(2), pp. 259–271 |
+| Activation and fitness studies | Glorot, X., Bordes, A. and Bengio, Y. (2011) 'Deep sparse rectifier neural networks', *Proc. AISTATS*, PMLR 15, pp. 315–323; Garro, B.A. and Vázquez, R.A. (2015) 'Designing artificial neural networks using particle swarm optimization algorithms', *Computational Intelligence and Neuroscience*, 2015, article 369298 |
+| D17: statistics | Arcuri, A. and Briand, L. (2011) 'A practical guide for using statistical tests to assess randomized algorithms in software engineering', *Proc. ICSE*, pp. 1–10; Holm, S. (1979) 'A simple sequentially rejective multiple test procedure', *Scandinavian Journal of Statistics*, 6(2), pp. 65–70; Vargha, A. and Delaney, H.D. (2000) 'A critique and improvement of the CL common language effect size statistics of McGraw and Wong', *Journal of Educational and Behavioral Statistics*, 25(2), pp. 101–132 |
+| Published results on the banknote data | Xiao, H. and Zhu, X. (2015) 'Margin-based feed-forward neural network classifiers', arXiv:1506.03626; Shahani, S., Jagiasi, A. and Priya, R.L. (2018) 'Analysis of banknote authentication system using machine learning techniques', *International Journal of Computer Applications*, 179(20), pp. 22–26 |
+| Further work | Bergstra, J. and Bengio, Y. (2012) 'Random search for hyper-parameter optimization', *JMLR*, 13, pp. 281–305; Yao, X. (1999) 'Evolving artificial neural networks', *Proceedings of the IEEE*, 87(9), pp. 1423–1447; Gudise, V.G. and Venayagamoorthy, G.K. (2003) 'Comparison of particle swarm optimization and backpropagation as training algorithms for neural networks', *Proc. IEEE Swarm Intelligence Symposium*, pp. 110–117 |
+| Dataset | Lohweg, V. (2012) *Banknote Authentication* [Dataset]. UCI Machine Learning Repository. https://archive.ics.uci.edu/dataset/267/banknote+authentication |

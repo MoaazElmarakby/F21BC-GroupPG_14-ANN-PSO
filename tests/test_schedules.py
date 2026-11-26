@@ -7,8 +7,8 @@ from psoann.cli import main
 from psoann.config import ExperimentConfig, PSOConfig
 from psoann.experiments import SWEEPS
 from psoann.pso import (
-    CoefficientSchedule,
     Coefficients,
+    CoefficientSchedule,
     ParticleSwarmOptimizer,
     SearchSpace,
     available_coefficient_schedules,
@@ -44,7 +44,7 @@ def test_linear_schedule_interpolates_and_clips_progress():
 
 
 def test_literature_schedules_change_only_their_own_coefficients():
-    base = dict(alpha=0.7, beta=1.2, gamma=1.3, delta=0.4)
+    base = {"alpha": 0.7, "beta": 1.2, "gamma": 1.3, "delta": 0.4}
     inertia = make_coefficient_schedule(PSOConfig(**base, schedule="linear_inertia"))
     assert inertia.at(0.0) == Coefficients(0.9, 1.2, 1.3, 0.4) and inertia.at(1.0) == Coefficients(0.4, 1.2, 1.3, 0.4)
     tvac = make_coefficient_schedule(PSOConfig(**base, schedule="tvac"))
@@ -60,7 +60,9 @@ def test_optimiser_asks_the_schedule_once_per_move_from_start_to_end():
             return Coefficients(0.7, 1.5, 1.5, 0.0)
 
     cfg = PSOConfig(swarm_size=5, iterations=6)
-    ParticleSwarmOptimizer(cfg, schedule=Spy()).optimise(sphere, SearchSpace.symmetric(2, 1.0), np.random.default_rng(0))
+    ParticleSwarmOptimizer(cfg, schedule=Spy()).optimise(
+        sphere, SearchSpace.symmetric(2, 1.0), np.random.default_rng(0)
+    )
     np.testing.assert_allclose(asked, [0.0, 0.25, 0.5, 0.75, 1.0])  # 6 assessments -> 5 moves
 
 

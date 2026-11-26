@@ -11,8 +11,9 @@ from __future__ import annotations
 import dataclasses
 import hashlib
 import json
+from collections.abc import Mapping
 from dataclasses import dataclass, field, fields
-from typing import Any, Mapping
+from typing import Any
 
 _SPLIT_POLICIES = ("fixed", "per_run")
 _INITIAL_VELOCITIES = ("half_diff", "zero")
@@ -54,7 +55,7 @@ def _build(cls: type, data: Mapping[str, Any], nested: Mapping[str, type] | None
 class DataConfig:
     path: str = "data/raw/banknote.csv"
     train_fraction: float = 0.7
-    standardise: bool = True  # D6: z-score with *training* statistics only
+    standardise: bool = True  # z-score using the *training* statistics only
     split_policy: str = "fixed"  # "fixed": one split for all runs; "per_run": new split each run
 
     def __post_init__(self) -> None:
@@ -65,13 +66,13 @@ class DataConfig:
         _require(self.split_policy in _SPLIT_POLICIES, f"data.split_policy must be one of {_SPLIT_POLICIES}")
 
     @classmethod
-    def from_dict(cls, data: Mapping[str, Any]) -> "DataConfig":
+    def from_dict(cls, data: Mapping[str, Any]) -> DataConfig:
         return _build(cls, data)
 
 
 @dataclass(frozen=True)
 class ANNConfig:
-    hidden_layers: tuple[int, ...] = (8,)  # D7: 4-8-1 by default
+    hidden_layers: tuple[int, ...] = (8,)  # the default network is 4-8-1
     hidden_activation: str = "tanh"
     output_activation: str = "logistic"
     n_outputs: int = 1  # 1 = one logistic unit (predict 1 if >= 0.5); >1 = argmax
@@ -86,18 +87,25 @@ class ANNConfig:
         layers = tuple(layers)
         _require(all(_is_int(n) and n >= 1 for n in layers), f"ann.hidden_layers must be positive ints, got {layers}")
         object.__setattr__(self, "hidden_layers", layers)
-        _require(isinstance(self.hidden_activation, str) and self.hidden_activation, "ann.hidden_activation must be a name")
-        _require(isinstance(self.output_activation, str) and self.output_activation, "ann.output_activation must be a name")
+        _require(
+            isinstance(self.hidden_activation, str) and self.hidden_activation, "ann.hidden_activation must be a name"
+        )
+        _require(
+            isinstance(self.output_activation, str) and self.output_activation, "ann.output_activation must be a name"
+        )
         _require(_is_int(self.n_outputs) and self.n_outputs >= 1, "ann.n_outputs must be an int >= 1")
         _require(isinstance(self.evolve_activations, bool), "ann.evolve_activations must be a bool")
         choices = self.activation_choices
-        _require(isinstance(choices, (list, tuple)) and len(choices) >= 1, "ann.activation_choices must be a non-empty list of names")
+        _require(
+            isinstance(choices, (list, tuple)) and len(choices) >= 1,
+            "ann.activation_choices must be a non-empty list of names",
+        )
         _require(all(isinstance(c, str) and c for c in choices), "ann.activation_choices must contain activation names")
         object.__setattr__(self, "activation_choices", tuple(choices))
         _require(not (self.evolve_activations and not layers), "ann.evolve_activations needs at least one hidden layer")
 
     @classmethod
-    def from_dict(cls, data: Mapping[str, Any]) -> "ANNConfig":
+    def from_dict(cls, data: Mapping[str, Any]) -> ANNConfig:
         return _build(cls, data)
 
 
@@ -105,16 +113,17 @@ class ANNConfig:
 class PSOConfig:
     swarm_size: int = 30
     iterations: int = 100
-    # Algorithm 39 coefficients (D3: constriction-equivalent values, delta = 0 -> informants only)
+    # Algorithm 39 coefficients: constriction-equivalent defaults (Clerc and Kennedy, 2002); delta = 0 means that
+    # the velocity update uses the informants' best and not the swarm's global best
     alpha: float = 0.7298  # proportion of velocity retained
     beta: float = 1.4962  # proportion of personal best mixed in
     gamma: float = 1.4962  # proportion of informants' best mixed in
     delta: float = 0.0  # proportion of global best mixed in
     epsilon: float = 1.0  # jump size
-    informants: str = "random"  # D4: topology name from the informant registry
+    informants: str = "random"  # name of an informant strategy in the registry
     n_informants: int = 3  # random topology: number of *other* particles per particle (self is always added)
     regenerate_informants: bool = False  # redraw the random informants every iteration
-    bound: float = 2.0  # D5: every weight/bias is searched in [-bound, +bound]
+    bound: float = 2.0  # every weight and bias is searched in [-bound, +bound]
     bound_handling: str = "clamp"
     max_velocity_fraction: float | None = None  # optional |v_d| <= fraction * (upper_d - lower_d)
     initial_velocity: str = "half_diff"
@@ -134,7 +143,9 @@ class PSOConfig:
         _require(isinstance(self.bound_handling, str) and self.bound_handling, "pso.bound_handling must be a name")
         if self.max_velocity_fraction is not None:
             _require(_as_float(self, "max_velocity_fraction") > 0.0, "pso.max_velocity_fraction must be > 0 or unset")
-        _require(self.initial_velocity in _INITIAL_VELOCITIES, f"pso.initial_velocity must be one of {_INITIAL_VELOCITIES}")
+        _require(
+            self.initial_velocity in _INITIAL_VELOCITIES, f"pso.initial_velocity must be one of {_INITIAL_VELOCITIES}"
+        )
 
     @property
     def budget(self) -> int:
@@ -142,13 +153,13 @@ class PSOConfig:
         return self.swarm_size * self.iterations
 
     @classmethod
-    def from_dict(cls, data: Mapping[str, Any]) -> "PSOConfig":
+    def from_dict(cls, data: Mapping[str, Any]) -> PSOConfig:
         return _build(cls, data)
 
 
 @dataclass(frozen=True)
 class TrainingConfig:
-    fitness: str = "accuracy"  # D2: training accuracy by default
+    fitness: str = "accuracy"  # name of a fitness metric; accuracy on the training set by default
     optimizer: str = "pso"  # "random_search" is the equal-budget control (study Q0)
 
     def __post_init__(self) -> None:
@@ -156,7 +167,7 @@ class TrainingConfig:
         _require(self.optimizer in _OPTIMIZERS, f"training.optimizer must be one of {_OPTIMIZERS}")
 
     @classmethod
-    def from_dict(cls, data: Mapping[str, Any]) -> "TrainingConfig":
+    def from_dict(cls, data: Mapping[str, Any]) -> TrainingConfig:
         return _build(cls, data)
 
 
@@ -183,16 +194,15 @@ class ExperimentConfig:
         for key, cls in _SECTIONS.items():
             _require(isinstance(getattr(self, key), cls), f"{key} must be a {cls.__name__}")
 
-    # ---- construction -------------------------------------------------------------------------
     @classmethod
-    def from_dict(cls, data: Mapping[str, Any]) -> "ExperimentConfig":
+    def from_dict(cls, data: Mapping[str, Any]) -> ExperimentConfig:
         return _build(cls, data, nested=_SECTIONS)
 
     @classmethod
-    def from_json(cls, text: str) -> "ExperimentConfig":
+    def from_json(cls, text: str) -> ExperimentConfig:
         return cls.from_dict(json.loads(text))
 
-    def with_overrides(self, overrides: Mapping[str, Any]) -> "ExperimentConfig":
+    def with_overrides(self, overrides: Mapping[str, Any]) -> ExperimentConfig:
         """Return a copy with dotted keys replaced, e.g. ``{"pso.alpha": 0.5, "n_runs": 3}``."""
         data = self.to_dict()
         for key, value in overrides.items():
@@ -205,7 +215,6 @@ class ExperimentConfig:
             node[parts[-1]] = value
         return ExperimentConfig.from_dict(data)
 
-    # ---- serialisation ------------------------------------------------------------------------
     def to_dict(self) -> dict[str, Any]:
         return dataclasses.asdict(self)
 
@@ -216,7 +225,7 @@ class ExperimentConfig:
         return hashlib.sha1(self.to_json().encode("utf-8")).hexdigest()[:10]
 
     def flatten(self) -> dict[str, Any]:
-        """Dotted keys with scalar values (lists become ``"8-4"``, an empty list ``"none"``), ready to be CSV columns."""
+        """Dotted keys with scalar values for CSV columns (lists become ``"8-4"``; an empty list ``"none"``)."""
         out: dict[str, Any] = {}
 
         def walk(prefix: str, node: Mapping[str, Any]) -> None:

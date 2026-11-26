@@ -22,7 +22,7 @@ and calls ``regenerate`` every iteration.
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-from typing import Callable
+from collections.abc import Callable
 
 import numpy as np
 from numpy.typing import NDArray
@@ -80,7 +80,9 @@ class NearestInformants(InformantStrategy):
             raise ValueError("k must be >= 1")
         self.k = k
 
-    def build(self, swarm_size: int, rng: np.random.Generator, positions: NDArray[np.float64] | None = None) -> IndexMatrix:
+    def build(
+        self, swarm_size: int, rng: np.random.Generator, positions: NDArray[np.float64] | None = None
+    ) -> IndexMatrix:
         if positions is None:
             raise ValueError("NearestInformants needs the particle positions")
         positions = np.asarray(positions, dtype=np.float64)

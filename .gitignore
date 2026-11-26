@@ -26,8 +26,8 @@ htmlcov/
 # Jupyter
 .ipynb_checkpoints/
 
-# Experiment outputs
-results/
+# Output of the quick-start commands in the README
+/demo/
 
 # Editors / IDEs
 .vscode/

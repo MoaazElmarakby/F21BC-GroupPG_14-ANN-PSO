@@ -66,9 +66,23 @@ def _coefficient_points() -> list[dict[str, Any]]:
 def _informant_points() -> list[dict[str, Any]]:
     points: list[dict[str, Any]] = [{"label": "global", "pso.informants": "global"}]
     for k in (1, 2, 3, 5, 10):
-        points.append({"label": f"random-k{k}", "pso.informants": "random", "pso.n_informants": k, "pso.regenerate_informants": False})
+        points.append(
+            {
+                "label": f"random-k{k}",
+                "pso.informants": "random",
+                "pso.n_informants": k,
+                "pso.regenerate_informants": False,
+            }
+        )
     for k in (1, 2, 3, 5, 10):
-        points.append({"label": f"regen-k{k}", "pso.informants": "random", "pso.n_informants": k, "pso.regenerate_informants": True})
+        points.append(
+            {
+                "label": f"regen-k{k}",
+                "pso.informants": "random",
+                "pso.n_informants": k,
+                "pso.regenerate_informants": True,
+            }
+        )
     for k in (1, 2, 3, 5, 10):
         points.append({"label": f"nearest-k{k}", "pso.informants": "nearest", "pso.n_informants": k})
     return points

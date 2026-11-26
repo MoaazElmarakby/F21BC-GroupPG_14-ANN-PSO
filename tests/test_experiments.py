@@ -159,7 +159,11 @@ def test_grid_expansion_is_the_cartesian_product():
 
 def test_fixed_budget_pairs_keep_the_evaluation_budget_equal():
     sweep = Sweep.from_dict({"name": "b", "fixed_budget": {"budget": 3000, "swarm_sizes": [10, 30, 100]}})
-    assert [(p.config.pso.swarm_size, p.config.pso.iterations) for p in sweep.expand()] == [(10, 300), (30, 100), (100, 30)]
+    assert [(p.config.pso.swarm_size, p.config.pso.iterations) for p in sweep.expand()] == [
+        (10, 300),
+        (30, 100),
+        (100, 30),
+    ]
     assert all(p.config.pso.budget == 3000 for p in sweep.expand())
 
 

@@ -9,7 +9,6 @@ from psoann.analysis.plots import plot_boxplot, plot_heatmap
 from psoann.analysis.stats import a12, effect_label, holm, kruskal_wallis, pairwise_tests
 from psoann.analysis.summary import summarise
 from psoann.ann import EvolvedActivationNetwork, build_network
-from psoann.ann.activations import get_activation
 from psoann.cli import main
 from psoann.config import ANNConfig, ExperimentConfig, PSOConfig, TrainingConfig
 from psoann.evaluation import confusion_counts, precision_recall_f1
@@ -134,7 +133,9 @@ def test_nearest_informants_are_recomputed_each_iteration_and_use_the_budget():
     cfg = PSOConfig(swarm_size=10, iterations=15, informants="nearest", n_informants=3)
     strategy = make_informant_strategy(cfg)
     assert strategy.uses_positions
-    result = ParticleSwarmOptimizer(cfg).optimise(lambda x: -float(np.sum(x**2)), SearchSpace.symmetric(4, 2.0), np.random.default_rng(1))
+    result = ParticleSwarmOptimizer(cfg).optimise(
+        lambda x: -float(np.sum(x**2)), SearchSpace.symmetric(4, 2.0), np.random.default_rng(1)
+    )
     assert result.evaluations == 150 and np.all(np.diff(result.history["best"]) >= 0)
 
 
@@ -155,7 +156,7 @@ def test_evolved_network_has_one_gene_per_hidden_layer():
 
 
 def test_gene_integer_part_selects_the_activation(rng):
-    net, cfg = evolved_net(hidden=(4,))
+    net, _ = evolved_net(hidden=(4,))
     X = rng.normal(size=(6, 4))
     weights = rng.normal(size=net.n_weights)
     for gene, name in ((0.2, "logistic"), (1.7, "tanh"), (2.99, "relu"), (3.0, "relu")):
@@ -174,7 +175,11 @@ def test_evolving_needs_a_hidden_layer_and_the_right_length(rng):
 
 def test_pso_can_train_a_network_with_evolved_activations():
     cfg = ExperimentConfig.from_dict(
-        {"n_runs": 2, "pso": {"swarm_size": 10, "iterations": 8}, "ann": {"hidden_layers": [4, 4], "evolve_activations": True}}
+        {
+            "n_runs": 2,
+            "pso": {"swarm_size": 10, "iterations": 8},
+            "ann": {"hidden_layers": [4, 4], "evolve_activations": True},
+        }
     )
     rows = run_experiment(cfg).rows
     assert all(r["n_parameters"] == (4 * 4 + 4) + (4 * 4 + 4) + (4 + 1) + 2 for r in rows)
@@ -182,7 +187,7 @@ def test_pso_can_train_a_network_with_evolved_activations():
 
 
 def test_genes_stay_inside_their_range_during_training(rng):
-    net, cfg = evolved_net(hidden=(3,))
+    net, _ = evolved_net(hidden=(3,))
     seen = []
 
     def spy(x):
@@ -191,7 +196,9 @@ def test_genes_stay_inside_their_range_during_training(rng):
 
     from psoann.pso import SearchSpace as S
 
-    ParticleSwarmOptimizer(PSOConfig(swarm_size=8, iterations=20)).optimise(spy, S(*net.bounds(2.0)), np.random.default_rng(0))
+    ParticleSwarmOptimizer(PSOConfig(swarm_size=8, iterations=20)).optimise(
+        spy, S(*net.bounds(2.0)), np.random.default_rng(0)
+    )
     genes = np.array(seen)
     assert genes.min() >= 0.0 and genes.max() <= 3.0
 
@@ -265,7 +272,16 @@ def test_study_presets_match_the_study_plan():
 
 
 def test_study_presets_use_30_runs_and_a_fixed_budget():
-    for name in ("architecture", "coefficients", "informants", "bounds", "activations", "fitness", "random_search", "schedule"):
+    for name in (
+        "architecture",
+        "coefficients",
+        "informants",
+        "bounds",
+        "activations",
+        "fitness",
+        "random_search",
+        "schedule",
+    ):
         for point in SWEEPS[name].expand():
             assert point.config.n_runs == 30 and point.config.pso.budget == 2000, (name, point.point_id)
     budgets = {p.config.pso.budget for p in SWEEPS["swarm_vs_iterations"].expand()}
@@ -273,7 +289,9 @@ def test_study_presets_use_30_runs_and_a_fixed_budget():
 
 
 def test_coefficient_points_sum_to_four_and_cover_all_whole_splits():
-    coefficients = {(p.config.pso.beta, p.config.pso.gamma, p.config.pso.delta) for p in SWEEPS["coefficients"].expand()}
+    coefficients = {
+        (p.config.pso.beta, p.config.pso.gamma, p.config.pso.delta) for p in SWEEPS["coefficients"].expand()
+    }
     assert len(coefficients) == 15 and all(sum(c) == 4.0 for c in coefficients)
 
 
@@ -287,7 +305,11 @@ def test_every_informant_point_builds_with_the_study_swarm():
         cfg = point.config.pso
         strategy = make_informant_strategy(cfg)
         positions = np.random.default_rng(0).random((cfg.swarm_size, 5))
-        idx = strategy.build(cfg.swarm_size, np.random.default_rng(0), positions) if strategy.uses_positions else strategy.build(cfg.swarm_size, np.random.default_rng(0))
+        idx = (
+            strategy.build(cfg.swarm_size, np.random.default_rng(0), positions)
+            if strategy.uses_positions
+            else strategy.build(cfg.swarm_size, np.random.default_rng(0))
+        )
         assert idx.shape[0] == cfg.swarm_size
 
 
@@ -317,7 +339,9 @@ def groups():
     return pd.DataFrame(
         {
             "point": np.repeat(["a", "b", "c"], 30),
-            "test_accuracy": np.concatenate([rng.normal(0.90, 0.01, 30), rng.normal(0.95, 0.01, 30), rng.normal(0.90, 0.01, 30)]),
+            "test_accuracy": np.concatenate(
+                [rng.normal(0.90, 0.01, 30), rng.normal(0.95, 0.01, 30), rng.normal(0.90, 0.01, 30)]
+            ),
         }
     )
 
@@ -355,12 +379,24 @@ def test_stats_errors(groups):
 
 def test_summarise_includes_f1_and_target_columns_when_present():
     df = pd.DataFrame(
-        {"experiment": ["e"] * 4, "train_accuracy": [1.0] * 4, "test_accuracy": [0.9] * 4, "test_f1": [0.9] * 4,
-         "train_mse": [0.1] * 4, "test_mse": [0.1] * 4, "evals_to_final_best": [10] * 4,
-         "evals_to_target": [5, None, 7, None], "reached_target": [1, 0, 1, 0]}
+        {
+            "experiment": ["e"] * 4,
+            "train_accuracy": [1.0] * 4,
+            "test_accuracy": [0.9] * 4,
+            "test_f1": [0.9] * 4,
+            "train_mse": [0.1] * 4,
+            "test_mse": [0.1] * 4,
+            "evals_to_final_best": [10] * 4,
+            "evals_to_target": [5, None, 7, None],
+            "reached_target": [1, 0, 1, 0],
+        }
     )
     table = summarise(df)
-    assert table.loc[0, "reached_target_mean"] == 0.5 and table.loc[0, "evals_to_target_mean"] == 6.0 and "test_f1_mean" in table
+    assert (
+        table.loc[0, "reached_target_mean"] == 0.5
+        and table.loc[0, "evals_to_target_mean"] == 6.0
+        and "test_f1_mean" in table
+    )
 
 
 # ---- CLI end to end ---------------------------------------------------------------------------------
@@ -383,6 +419,14 @@ def test_stats_and_new_plots_from_the_command_line(tmp_path, capsys):
 
 
 def test_boundary_hits_can_be_plotted(tmp_path):
-    assert main(["run", "--runs", "2", "--set", "pso.swarm_size=6", "--set", "pso.iterations=4", "--out", str(tmp_path)]) == 0
+    assert (
+        main(["run", "--runs", "2", "--set", "pso.swarm_size=6", "--set", "pso.iterations=4", "--out", str(tmp_path)])
+        == 0
+    )
     png = tmp_path / "hits.png"
-    assert main(["plot-convergence", str(tmp_path / "default.histories.jsonl"), "--key", "boundary_hits", "--out", str(png)]) == 0
+    assert (
+        main(
+            ["plot-convergence", str(tmp_path / "default.histories.jsonl"), "--key", "boundary_hits", "--out", str(png)]
+        )
+        == 0
+    )

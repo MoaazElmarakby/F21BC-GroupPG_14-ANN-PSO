@@ -18,8 +18,9 @@ ordinary experiment, so each result row still carries its full configuration.
 from __future__ import annotations
 
 import itertools
+from collections.abc import Callable, Mapping
 from dataclasses import dataclass, field
-from typing import Any, Callable, Mapping
+from typing import Any
 
 from psoann.config import ExperimentConfig
 from psoann.experiments.runner import History, Row, run_experiment
@@ -44,7 +45,7 @@ class Sweep:
     points: tuple[dict[str, Any], ...] = ()  # explicit settings; optional "label" names the point
 
     @classmethod
-    def from_dict(cls, data: Mapping[str, Any]) -> "Sweep":
+    def from_dict(cls, data: Mapping[str, Any]) -> Sweep:
         unknown = sorted(set(data) - _ALLOWED_KEYS)
         if unknown:
             raise ValueError(f"unknown sweep key(s) {unknown}; allowed: {sorted(_ALLOWED_KEYS)}")
@@ -95,7 +96,9 @@ class Sweep:
             for swarm in self.swarm_sizes:
                 if swarm > self.budget:
                     raise ValueError(f"swarm size {swarm} exceeds the budget {self.budget}")
-                options.append(({"pso.swarm_size": swarm}, {"pso.swarm_size": swarm, "pso.iterations": self.budget // swarm}, None))
+                options.append(
+                    ({"pso.swarm_size": swarm}, {"pso.swarm_size": swarm, "pso.iterations": self.budget // swarm}, None)
+                )
             axes.append(options)
         if self.points:
             axes.append(
@@ -113,7 +116,11 @@ class Sweep:
             for option_params, option_overrides, label in combo:
                 params.update(option_params)
                 overrides.update(option_overrides)
-                labels.append(label if label is not None else "__".join(f"{k.split('.')[-1]}={_label(v)}" for k, v in option_params.items()))
+                labels.append(
+                    label
+                    if label is not None
+                    else "__".join(f"{k.split('.')[-1]}={_label(v)}" for k, v in option_params.items())
+                )
             point_id = "__".join(labels) or "base"
             config = self.base.with_overrides({**overrides, "name": f"{self.name}/{point_id}"})
             points.append(SweepPoint(point_id, params, config))
@@ -139,9 +146,7 @@ def run_sweep(
             row["sweep"] = sweep.name
             row["point"] = point.point_id
         rows.extend(result.rows)
-        histories.extend(
-            {**h, "sweep": sweep.name, "point": point.point_id} for h in result.histories
-        )
+        histories.extend({**h, "sweep": sweep.name, "point": point.point_id} for h in result.histories)
         if progress is not None:
             progress(index, len(points), point)
     return rows, histories

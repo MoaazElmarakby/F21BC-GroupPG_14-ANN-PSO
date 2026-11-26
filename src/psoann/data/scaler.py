@@ -1,4 +1,4 @@
-"""Z-score standardisation fitted on training data only (decision D6: no test-set leakage)."""
+"""Z-score standardisation fitted on the training data only, so no test-set information leaks in."""
 
 from __future__ import annotations
 
@@ -11,7 +11,7 @@ class Standardizer:
         self.mean_: NDArray[np.float64] | None = None
         self.scale_: NDArray[np.float64] | None = None
 
-    def fit(self, X: NDArray[np.float64]) -> "Standardizer":
+    def fit(self, X: NDArray[np.float64]) -> Standardizer:
         self.mean_ = X.mean(axis=0)
         std = X.std(axis=0)
         self.scale_ = np.where(std > 0.0, std, 1.0)  # constant columns map to 0 instead of NaN
@@ -21,6 +21,3 @@ class Standardizer:
         if self.mean_ is None or self.scale_ is None:
             raise RuntimeError("Standardizer must be fitted before transform")
         return (X - self.mean_) / self.scale_
-
-    def fit_transform(self, X: NDArray[np.float64]) -> NDArray[np.float64]:
-        return self.fit(X).transform(X)

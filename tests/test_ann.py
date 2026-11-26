@@ -1,11 +1,18 @@
 import numpy as np
 import pytest
 
-from psoann.ann import FeedForwardNetwork, LayerParams, ParameterCodec, build_network, get_activation, register_activation
+from psoann.ann import (
+    FeedForwardNetwork,
+    LayerParams,
+    ParameterCodec,
+    build_network,
+    get_activation,
+    register_activation,
+)
 from psoann.config import ANNConfig
 
 
-def test_default_network_has_49_parameters():  # D7: 4-8-1 -> (4*8+8) + (8*1+1)
+def test_default_network_has_49_parameters():  # 4-8-1: (4*8+8) + (8*1+1)
     net = build_network(ANNConfig(), n_inputs=4)
     assert net.layer_sizes == (4, 8, 1) and net.n_parameters == 49
 

@@ -6,7 +6,7 @@ To add one: ``register_fitness_metric("name", fn)`` then ``training.fitness = "n
 
 from __future__ import annotations
 
-from typing import Callable
+from collections.abc import Callable
 
 import numpy as np
 from numpy.typing import NDArray
@@ -58,7 +58,9 @@ def accuracy(outputs: NDArray[np.float64], labels: NDArray[np.int64]) -> float:
     return float(np.mean(predict_labels(outputs) == np.asarray(labels)))
 
 
-def confusion_counts(outputs: NDArray[np.float64], labels: NDArray[np.int64], positive: int = 1) -> tuple[int, int, int, int]:
+def confusion_counts(
+    outputs: NDArray[np.float64], labels: NDArray[np.int64], positive: int = 1
+) -> tuple[int, int, int, int]:
     """(tp, fp, fn, tn) treating class ``positive`` as the positive class (1 = forged banknote)."""
     predicted = predict_labels(outputs) == positive
     actual = np.asarray(labels) == positive

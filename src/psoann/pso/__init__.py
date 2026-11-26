@@ -15,8 +15,8 @@ from psoann.pso.informants import (
 from psoann.pso.optimizer import ParticleSwarmOptimizer
 from psoann.pso.random_search import RandomSearchOptimizer
 from psoann.pso.schedules import (
-    CoefficientSchedule,
     Coefficients,
+    CoefficientSchedule,
     available_coefficient_schedules,
     make_coefficient_schedule,
     register_coefficient_schedule,

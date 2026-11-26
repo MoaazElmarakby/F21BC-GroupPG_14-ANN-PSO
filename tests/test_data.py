@@ -2,7 +2,7 @@ import numpy as np
 import pytest
 
 from psoann.config import DataConfig
-from psoann.data import Standardizer, load_csv, make_split, stratified_kfold, stratified_split
+from psoann.data import Standardizer, load_csv, make_split, stratified_split
 
 
 def test_banknote_loads_with_the_expected_shape():
@@ -37,15 +37,6 @@ def test_split_is_deterministic_given_the_generator():
     b = stratified_split(y, 0.5, np.random.default_rng(5))
     np.testing.assert_array_equal(a[0], b[0])
     assert not np.array_equal(a[0], stratified_split(y, 0.5, np.random.default_rng(6))[0])
-
-
-def test_kfold_covers_every_sample_once_in_test(rng):
-    y = np.array([0] * 40 + [1] * 25)
-    folds = stratified_kfold(y, 5, rng)
-    tests = np.concatenate([t for _, t in folds])
-    assert sorted(tests.tolist()) == list(range(65))
-    for train, test in folds:
-        assert not set(train) & set(test) and len(train) + len(test) == 65
 
 
 def test_standardiser_uses_training_statistics_only(rng):

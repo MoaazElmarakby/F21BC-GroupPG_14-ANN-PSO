@@ -1,6 +1,6 @@
 """Run experiments reproducibly.
 
-Seeding (design doc, section 3):
+Seeding (see docs/design.md, section 3):
 
 * run ``i`` uses ``SeedSequence(base_seed, spawn_key=(i,))`` -- exactly child ``i`` of
   ``SeedSequence(base_seed).spawn(n_runs)`` -- so it does not depend on ``n_runs``;
@@ -15,8 +15,9 @@ can be regenerated with ``run_single(config, run_index)``.
 from __future__ import annotations
 
 import time
+from collections.abc import Callable
 from dataclasses import dataclass, field
-from typing import Any, Callable
+from typing import Any
 
 import numpy as np
 from numpy.typing import NDArray
@@ -47,9 +48,7 @@ def fixed_split_seed(base_seed: int) -> np.random.SeedSequence:
     return np.random.SeedSequence([base_seed, 1])
 
 
-def split_for_run(
-    config: ExperimentConfig, run_index: int, X: NDArray[np.float64], y: NDArray[np.int64]
-) -> DataSplit:
+def split_for_run(config: ExperimentConfig, run_index: int, X: NDArray[np.float64], y: NDArray[np.int64]) -> DataSplit:
     if config.data.split_policy == "fixed":
         rng = np.random.default_rng(fixed_split_seed(config.base_seed))
     else:
@@ -98,7 +97,9 @@ def run_single(
         "test_mse": test_metrics["mse"],
         "evals_to_final_best": trained.pso.evaluations_to_final_best(),
         "evals_to_target": evals_to_target,
-        "reached_target": None if evals_to_target is None and config.target_fitness is None else int(evals_to_target is not None),
+        "reached_target": None
+        if evals_to_target is None and config.target_fitness is None
+        else int(evals_to_target is not None),
         "runtime_sec": runtime,
     }
     row.update({f"cfg.{key}": value for key, value in config.flatten().items()})

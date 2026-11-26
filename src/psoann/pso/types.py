@@ -2,8 +2,8 @@
 
 from __future__ import annotations
 
+from collections.abc import Callable
 from dataclasses import dataclass, field
-from typing import Callable
 
 import numpy as np
 from numpy.typing import NDArray
@@ -36,7 +36,7 @@ class SearchSpace:
         return self.upper - self.lower
 
     @classmethod
-    def symmetric(cls, dim: int, bound: float) -> "SearchSpace":
+    def symmetric(cls, dim: int, bound: float) -> SearchSpace:
         return cls(np.full(dim, -bound), np.full(dim, bound))
 
 

@@ -14,8 +14,8 @@ Requires scipy (``pip install psoann[analysis]``).
 
 from __future__ import annotations
 
+from collections.abc import Sequence
 from itertools import combinations
-from typing import Sequence
 
 import numpy as np
 import pandas as pd
@@ -101,8 +101,18 @@ def pairwise_tests(results: pd.DataFrame, by: str, metric: str, control: str | N
             u, p = float(result.statistic), float(result.pvalue)
         effect = a12(x, y)
         rows.append(
-            {"group_a": a, "group_b": b, "n_a": x.size, "n_b": y.size, "mean_a": x.mean(), "mean_b": y.mean(),
-             "U": u, "p": p, "a12": effect, "effect": effect_label(effect)}
+            {
+                "group_a": a,
+                "group_b": b,
+                "n_a": x.size,
+                "n_b": y.size,
+                "mean_a": x.mean(),
+                "mean_b": y.mean(),
+                "U": u,
+                "p": p,
+                "a12": effect,
+                "effect": effect_label(effect),
+            }
         )
     table = pd.DataFrame(rows)
     table.insert(table.columns.get_loc("p") + 1, "p_holm", holm(table["p"].to_numpy()))

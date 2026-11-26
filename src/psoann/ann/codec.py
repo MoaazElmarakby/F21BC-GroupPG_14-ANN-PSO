@@ -1,13 +1,14 @@
 """Flat parameter vector <-> per-layer weights and biases.
 
-Layout (see design doc, section 3): for each layer in order, the weight matrix (n_in x n_out,
-row-major) followed by the bias vector (n_out). Length = sum(n_in * n_out + n_out).
+Layout: for each layer in order, the weight matrix (n_in x n_out, row-major) followed by the bias
+vector (n_out). Length = sum(n_in * n_out + n_out).
 """
 
 from __future__ import annotations
 
+from collections.abc import Sequence
 from dataclasses import dataclass
-from typing import Sequence
+from itertools import pairwise
 
 import numpy as np
 from numpy.typing import NDArray
@@ -27,7 +28,7 @@ class ParameterCodec:
         self.layer_sizes = sizes
         self._slices: list[tuple[slice, tuple[int, int], slice]] = []
         offset = 0
-        for n_in, n_out in zip(sizes[:-1], sizes[1:]):
+        for n_in, n_out in pairwise(sizes):
             w = slice(offset, offset + n_in * n_out)
             offset = w.stop
             b = slice(offset, offset + n_out)
@@ -46,7 +47,7 @@ class ParameterCodec:
         if len(layers) != len(self._slices):
             raise ValueError(f"expected {len(self._slices)} layers, got {len(layers)}")
         vector = np.empty(self.n_parameters, dtype=np.float64)
-        for layer, (w, shape, b) in zip(layers, self._slices):
+        for layer, (w, shape, b) in zip(layers, self._slices, strict=True):
             if layer.weights.shape != shape or layer.biases.shape != (shape[1],):
                 raise ValueError("layer shapes do not match the codec")
             vector[w] = layer.weights.reshape(-1)

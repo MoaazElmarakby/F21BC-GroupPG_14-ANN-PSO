@@ -31,4 +31,10 @@ def evaluate_parameters(
     """Reporting metrics (independent of which metric was optimised). Class 1 (forged) is the positive class."""
     outputs = network.forward(params, X)
     precision, recall, f1 = precision_recall_f1(outputs, y)
-    return {"accuracy": accuracy(outputs, y), "mse": mse(outputs, y), "precision": precision, "recall": recall, "f1": f1}
+    return {
+        "accuracy": accuracy(outputs, y),
+        "mse": mse(outputs, y),
+        "precision": precision,
+        "recall": recall,
+        "f1": f1,
+    }

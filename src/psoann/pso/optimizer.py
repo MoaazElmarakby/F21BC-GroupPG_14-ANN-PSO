@@ -1,8 +1,8 @@
 """Particle Swarm Optimisation: Algorithm 39 of Luke, *Essentials of Metaheuristics* (2nd ed., 2013).
 
-Comments of the form ``[Alg. 39, line N]`` refer to the book's pseudo-code (checked against the book
-text supplied with the project). The optimiser maximises ``fitness`` and knows nothing about neural
-networks: it only sees a callable ``vector -> float`` and a ``SearchSpace``.
+Comments of the form ``[Alg. 39, line N]`` refer to the line numbers of the book's pseudo-code. The
+optimiser maximises ``fitness`` and knows nothing about neural networks: it only sees a callable
+``vector -> float`` and a ``SearchSpace``.
 
 Assumptions the pseudo-code leaves open (fixed here and documented in docs/design.md):
 
@@ -28,13 +28,18 @@ from numpy.typing import NDArray
 from psoann.config import PSOConfig
 from psoann.pso.bounds import BoundaryHandler, make_boundary_handler
 from psoann.pso.informants import InformantStrategy, make_informant_strategy
-from psoann.pso.schedules import CoefficientSchedule, Coefficients, make_coefficient_schedule
+from psoann.pso.schedules import Coefficients, CoefficientSchedule, make_coefficient_schedule
 from psoann.pso.types import Fitness, PSOResult, SearchSpace
 
 Matrix = NDArray[np.float64]
 
 
 class ParticleSwarmOptimizer:
+    """Algorithm 39 with pluggable informant strategy, boundary rule and coefficient schedule.
+
+    By default the three components are built from ``config``; pass an instance to override one of them.
+    """
+
     def __init__(
         self,
         config: PSOConfig,
@@ -47,7 +52,6 @@ class ParticleSwarmOptimizer:
         self.boundary = boundary if boundary is not None else make_boundary_handler(config.bound_handling)
         self.schedule = schedule if schedule is not None else make_coefficient_schedule(config)
 
-    # ------------------------------------------------------------------------------------------
     def optimise(self, fitness: Fitness, space: SearchSpace, rng: np.random.Generator) -> PSOResult:
         cfg = self.config
         swarm, dim = cfg.swarm_size, space.dim
@@ -126,7 +130,6 @@ class ParticleSwarmOptimizer:
             history={k: np.asarray(v, dtype=np.float64) for k, v in history.items()},
         )
 
-    # ------------------------------------------------------------------------------------------
     def _build_informants(self, positions: Matrix, swarm: int, rng: np.random.Generator) -> NDArray[np.int64]:
         if self.informants.uses_positions:
             return self.informants.build(swarm, rng, positions)  # type: ignore[call-arg]

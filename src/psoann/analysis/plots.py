@@ -3,15 +3,16 @@
 from __future__ import annotations
 
 from collections import defaultdict
+from collections.abc import Mapping, Sequence
 from pathlib import Path
-from typing import Any, Mapping, Sequence
+from typing import Any
 
 import matplotlib
 
 matplotlib.use("Agg")
-import matplotlib.pyplot as plt  # noqa: E402
-import numpy as np  # noqa: E402
-import pandas as pd  # noqa: E402
+import matplotlib.pyplot as plt
+import numpy as np
+import pandas as pd
 
 
 def plot_convergence(
@@ -24,7 +25,9 @@ def plot_convergence(
     groups: dict[str, list[np.ndarray]] = defaultdict(list)
     evaluations: dict[str, np.ndarray] = {}
     for record in histories:
-        label = str(record.get(group_by, "")) if group_by else str(record.get("point") or record.get("experiment", "run"))
+        label = (
+            str(record.get(group_by, "")) if group_by else str(record.get("point") or record.get("experiment", "run"))
+        )
         values = np.asarray(record["history"][key], dtype=float)
         groups[label].append(values)
         evaluations.setdefault(label, np.asarray(record["history"]["evaluations"], dtype=float))
@@ -36,7 +39,12 @@ def plot_convergence(
         ax.plot(evaluations[label], mean, label=f"{label} (n={len(curves)})")
         ax.fill_between(evaluations[label], mean - std, mean + std, alpha=0.2)
     ax.set_xlabel("fitness evaluations")
-    ax.set_ylabel({"diversity": "swarm diversity (mean per-dimension std)", "boundary_hits": "coordinates outside the bounds"}.get(key, f"{key} fitness"))
+    ax.set_ylabel(
+        {
+            "diversity": "swarm diversity (mean per-dimension std)",
+            "boundary_hits": "coordinates outside the bounds",
+        }.get(key, f"{key} fitness")
+    )
     ax.legend(fontsize=8)
     ax.grid(alpha=0.3)
     fig.tight_layout()
@@ -53,7 +61,14 @@ def plot_sweep(results: pd.DataFrame, x: str, y: str, out_path: str | Path, hue:
     for label, frame in results.groupby(hue, sort=False) if hue else [(None, results)]:
         stats = frame.groupby(x, sort=numeric_x)[y].agg(["mean", "std"]).fillna(0.0)
         positions = stats.index.to_numpy() if numeric_x else np.arange(len(stats))
-        ax.errorbar(positions, stats["mean"], yerr=stats["std"], marker="o", capsize=3, label=None if label is None else f"{hue}={label}")
+        ax.errorbar(
+            positions,
+            stats["mean"],
+            yerr=stats["std"],
+            marker="o",
+            capsize=3,
+            label=None if label is None else f"{hue}={label}",
+        )
         if not numeric_x:
             ax.set_xticks(positions, [str(v) for v in stats.index])
     ax.set_xlabel(x)
@@ -65,7 +80,9 @@ def plot_sweep(results: pd.DataFrame, x: str, y: str, out_path: str | Path, hue:
     return _save(fig, out_path)
 
 
-def plot_boxplot(results: pd.DataFrame, by: str, metric: str, out_path: str | Path, order: Sequence[str] | None = None) -> Path:
+def plot_boxplot(
+    results: pd.DataFrame, by: str, metric: str, out_path: str | Path, order: Sequence[str] | None = None
+) -> Path:
     """One box per group (e.g. ``by="point"``) showing the spread of ``metric`` over the repeated runs."""
     for column in (by, metric):
         if column not in results.columns:

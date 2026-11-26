@@ -43,7 +43,9 @@ class PSOTrainer:
         self.pso = pso
         self.training = training
         if optimizer is None:
-            optimizer = RandomSearchOptimizer(pso) if training.optimizer == "random_search" else ParticleSwarmOptimizer(pso)
+            optimizer = (
+                RandomSearchOptimizer(pso) if training.optimizer == "random_search" else ParticleSwarmOptimizer(pso)
+            )
         self.optimizer: Optimizer = optimizer
 
     def train(self, X: NDArray[np.float64], y: NDArray[np.int64], rng: np.random.Generator) -> TrainResult:

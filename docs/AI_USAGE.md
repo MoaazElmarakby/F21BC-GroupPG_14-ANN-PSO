@@ -23,8 +23,9 @@ Claude Code (ANN owner):
 | Evolved activations | `ann/network.py`, `config.py`, `training/trainer.py` | One gene per hidden layer selects the activation; bounds per dimension | TO COMPLETE |
 | Random-search control | `pso/random_search.py`, `config.py`, `training/trainer.py` | Equal-budget control optimiser | TO COMPLETE |
 | Studies | `experiments/presets.py`, `experiments/sweep.py` | Q0 to Q7 study definitions and explicit sweep points | TO COMPLETE |
-| Statistics and plots | `analysis/stats.py`, `analysis/plots.py`, `cli.py` | Kruskal-Wallis, Holm-corrected Mann-Whitney, A12, boxplot and heatmap | TO COMPLETE |
-| Tests and docs | `tests/test_extensions.py`, `docs/STUDIES.md`, `docs/SUBMISSION.md`, `scripts/make_submission.sh` | Tests for the above and the planning documents | TO COMPLETE |
+| Statistics and plots | `analysis/stats.py`, `analysis/plots.py`, `cli.py`, `scripts/make_outputs.py`, `scripts/plot_main_results.py` | Kruskal-Wallis, Holm-corrected Mann-Whitney, A12, boxplot and heatmap; the statistics files and the architecture, budget, coefficient and informant figures (report Figures 1 and 2) | TO COMPLETE |
+| Tests and docs | `tests/test_extensions.py`, `docs/STUDIES.md` | Tests for the above and the description of the studies | TO COMPLETE |
+| Final cleanup (26 November 2026) | all of `src/`, `tests/`, `scripts/`, `README.md`, `docs/`, `LITERATURE.md`, `pyproject.toml` | Formatting and lint rules (`ruff`); removed unused code (`stratified_kfold`, `Standardizer.fit_transform`) and internal decision tags from comments; split the two plotting scripts from the PSO owner into functions without changing their output; rewrote the README, design, studies and literature documents; removed the planning files and the design PDF | TO COMPLETE |
 
 
 Claude (PSO owner):
@@ -39,30 +40,38 @@ Claude (PSO owner):
 
 ## Experiment runs
 
-1. On 15 November 2026, the AI tool (Claude Code) executed `psoann sweep all --out results` (30 runs per
-setting; the two pilot studies use 10), producing `results/*.csv` and `results/*.histories.jsonl`
-(2200 runs, about 5 minutes). It ran the code unchanged and did not select or edit any numbers.
+1. On 15 November 2026 the AI tool (Claude Code) executed `psoann sweep all --out results` (30 runs per
+   setting; the two pilot studies use 10), producing `results/*.csv` and `results/*.histories.jsonl`
+   (2200 runs, about 5 minutes). It ran the code unchanged and did not select or edit any numbers.
+2. On 22 November 2026 we reran all studies ourselves with the same command in the VS Code terminal
+   (2320 runs with the new PSO additions, about 9 minutes) and produced the tables and figures with the
+   scripts listed below. Runs are seeded, so the same command gives the same numbers. The results in the
+   report are from this run.
+3. On 26 November 2026 the AI tool (Claude Code) reran `psoann sweep all --out results` and the five scripts below after the
+   final cleanup, so that the results used in the report are included in the repository. The 2320 result rows and the
+   per-iteration histories are identical to those of the code before the cleanup (only `runtime_sec` differs), and the values
+   printed in the report (boundary-rule means and Holm-corrected p-values, schedule p-values, boundary-hit counts,
+   Kruskal-Wallis p for the fitness functions, evolved-activation counts) are reproduced by these files.
 
-2. On 22 November 2026, we reran all studies ourselves with the same command, in the VS Code terminal
-(2320 runs with the new PSO additions, about 9 minutes), and produced the tables and figures with
-`scripts/make_outputs.py` and the two plotting scripts above. Runs are seeded, so the same command gives
-the same numbers. The results in the report are from this run.
+Environment of run 2: conda Python environment, Python 3.13.11, Windows. The time taken was measured with
 
-## Rerun Steps in Visual Studio Code Terminal
+```powershell
+(Get-ChildItem results\sweep_*.csv | ForEach-Object { Import-Csv $_ } | Measure-Object -Property runtime_sec -Sum).Sum / 60
+# 9.22 (minutes)
+```
 
-*terminal: conda python environment, version: 3.13.11*
+### Commands used to reproduce the results
 
-*Run all the sweeps, and then print the base results (figures, stats, json)*
-- \F21BC-GroupPG_14-ANN-PSO> psoann sweep all --out results 
+```bash
+psoann sweep all --out results                                       # all studies
+python scripts/make_outputs.py                                       # statistics files and boxplots
+python scripts/plot_main_results.py                                  # report Figures 1 and 2
+python scripts/plot_diversity_and_boundary_hits.py                   # report Figure 3
+python scripts/plot_boundary_rule_significance.py                    # report Figure 4
+python scripts/plot_boundary_rule_significance.py --study schedule   # Q3 appendix figure
+```
 
-*Check for time taken in Windows*
-(Get-ChildItem results\sweep_*.csv | ForEach-Object { Import-Csv $_ } | Measure-Object -Property runtime_sec -Sum).Sum / 60*
---> 9.22176156166242 *(minutes)*
-
-*Generate output and charts (close diversity_and_boundary_hits.png or resulting images to allow overwriting them)*
-python scripts/make_outputs.py
-python scripts/plot_diversity_and_boundary_hits.py
-python scripts/plot_boundary_rule_significance.py
+Close an image before regenerating it if the operating system locks the file.
 
 ## What the AI did not do
 

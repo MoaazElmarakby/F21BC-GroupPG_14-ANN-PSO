@@ -6,8 +6,9 @@ import argparse
 import ast
 import dataclasses
 import sys
+from collections.abc import Sequence
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, Sequence
+from typing import TYPE_CHECKING, Any
 
 from psoann.config import ExperimentConfig
 
@@ -71,7 +72,9 @@ def _run_one_sweep(sweep: Sweep, args: argparse.Namespace) -> None:
         sweep = dataclasses.replace(sweep, base=sweep.base.with_overrides(overrides))
     n_points = len(sweep.expand())
     print(f"sweep {sweep.name!r}: {n_points} point(s) x {sweep.base.n_runs} run(s)", file=sys.stderr)
-    rows, histories = run_sweep(sweep, progress=lambda i, n, p: print(f"  point {i}/{n}: {p.point_id}", file=sys.stderr, flush=True))
+    rows, histories = run_sweep(
+        sweep, progress=lambda i, n, p: print(f"  point {i}/{n}: {p.point_id}", file=sys.stderr, flush=True)
+    )
     csv_path, hist_path = write_results(args.out, f"sweep_{sweep.name}", rows, histories)
     print(f"wrote {csv_path} and {hist_path}")
 
@@ -106,8 +109,10 @@ def _cmd_stats(args: argparse.Namespace) -> int:
 
     results = load_results(args.results)
     omnibus = kruskal_wallis(results, args.by, args.metric)
-    print(f"Kruskal-Wallis on {args.metric} by {args.by}: H={omnibus['H']:.3f}, p={omnibus['p']:.4g} "
-          f"({int(omnibus['groups'])} groups, n={int(omnibus['n'])})")
+    print(
+        f"Kruskal-Wallis on {args.metric} by {args.by}: H={omnibus['H']:.3f}, p={omnibus['p']:.4g} "
+        f"({int(omnibus['groups'])} groups, n={int(omnibus['n'])})"
+    )
     table = pairwise_tests(results, args.by, args.metric, control=args.control)
     kind = f"against control {args.control!r}" if args.control else "all pairs"
     print(f"Mann-Whitney U, Holm-corrected ({kind}); a12 = P(group_a beats group_b)")
@@ -133,8 +138,8 @@ def _cmd_plot_heatmap(args: argparse.Namespace) -> int:
 
 def _cmd_list(_: argparse.Namespace) -> int:
     from psoann.ann import available_activations
-    from psoann.experiments import SWEEPS
     from psoann.evaluation import available_fitness_metrics
+    from psoann.experiments import SWEEPS
     from psoann.pso import (
         available_boundary_handlers,
         available_coefficient_schedules,
@@ -161,7 +166,9 @@ def build_parser() -> argparse.ArgumentParser:
     run.add_argument("--name", default="default", help="experiment name, used for the output file names")
     run.add_argument("--runs", type=int, help="override n_runs")
     run.add_argument("--seed", type=int, help="override base_seed")
-    run.add_argument("--set", action="append", default=[], metavar="KEY=VALUE", help="override a config key, e.g. pso.alpha=0.5")
+    run.add_argument(
+        "--set", action="append", default=[], metavar="KEY=VALUE", help="override a config key, e.g. pso.alpha=0.5"
+    )
     run.add_argument("--out", type=Path, default=Path("results"))
     run.set_defaults(func=_cmd_run)
 
@@ -174,8 +181,15 @@ def build_parser() -> argparse.ArgumentParser:
 
     summ = sub.add_parser("summarise", help="mean/std per group from a results CSV")
     summ.add_argument("results", type=Path)
-    summ.add_argument("--by", action="append", default=[], help="grouping column, e.g. cfg.pso.n_informants or point (repeatable)")
-    summ.add_argument("--metric", action="append", default=[], help="metric column to report, e.g. test_f1 (repeatable; default: the standard set)")
+    summ.add_argument(
+        "--by", action="append", default=[], help="grouping column, e.g. cfg.pso.n_informants or point (repeatable)"
+    )
+    summ.add_argument(
+        "--metric",
+        action="append",
+        default=[],
+        help="metric column to report, e.g. test_f1 (repeatable; default: the standard set)",
+    )
     summ.set_defaults(func=_cmd_summarise)
 
     conv = sub.add_parser("plot-convergence", help="plot best-so-far fitness from a histories JSONL")
@@ -215,7 +229,9 @@ def build_parser() -> argparse.ArgumentParser:
     heat.add_argument("--out", type=Path, required=True)
     heat.set_defaults(func=_cmd_plot_heatmap)
 
-    lst = sub.add_parser("list", help="show registered activations, topologies, boundary handlers, schedules, metrics and sweeps")
+    lst = sub.add_parser(
+        "list", help="show registered activations, topologies, boundary handlers, schedules, metrics and sweeps"
+    )
     lst.set_defaults(func=_cmd_list)
     return parser
 

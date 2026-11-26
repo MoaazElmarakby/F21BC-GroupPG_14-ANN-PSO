@@ -3,7 +3,7 @@
 ``apply`` modifies ``positions`` (and ``velocities``) in place. Handlers never draw random numbers
 themselves: a handler that needs randomness (``random``) receives a pre-drawn ``noise`` matrix of
 uniforms with the shape of ``positions``. The optimiser always draws that matrix, so its random
-stream does not depend on the handler (see design doc, section 3). A handler that needs to know where
+stream does not depend on the handler (see docs/design.md, section 3). A handler that needs to know where
 the particles came from (``reject``) receives ``previous``, the positions before the move.
 
 Strategies (compared in the boundary study, ``psoann sweep bounds``):
@@ -158,7 +158,9 @@ class NoBoundary(BoundaryHandler):
 _REGISTRY: Registry[type[BoundaryHandler]] = Registry("boundary handler")
 
 
-def register_boundary_handler(name: str, cls: type[BoundaryHandler], *, overwrite: bool = False) -> type[BoundaryHandler]:
+def register_boundary_handler(
+    name: str, cls: type[BoundaryHandler], *, overwrite: bool = False
+) -> type[BoundaryHandler]:
     return _REGISTRY.register(name, cls, overwrite=overwrite)
 
 

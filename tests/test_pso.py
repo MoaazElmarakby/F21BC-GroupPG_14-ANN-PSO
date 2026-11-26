@@ -177,8 +177,17 @@ def test_max_velocity_fraction_limits_step_size():
             seen.append(x.copy())
             return sphere(x)
 
-        cfg = PSOConfig(swarm_size=5, iterations=2, alpha=1.0, beta=0, gamma=0, delta=0,
-                        bound=10.0, max_velocity_fraction=fraction, bound_handling="none")
+        cfg = PSOConfig(
+            swarm_size=5,
+            iterations=2,
+            alpha=1.0,
+            beta=0,
+            gamma=0,
+            delta=0,
+            bound=10.0,
+            max_velocity_fraction=fraction,
+            bound_handling="none",
+        )
         run(cfg, fitness=spy, dim=3, bound=10.0)
         return np.abs(np.array(seen[5:]) - np.array(seen[:5]))
 
